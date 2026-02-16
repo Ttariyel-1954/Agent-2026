@@ -1,0 +1,239 @@
+# ARTI 2026 - Docker Compose Konfiqurasiyasi
+# Butun xidmetleri bir komanda ile ishga salin: docker-compose up -d
+
+version: '3.9'
+
+services:
+  # ===== Verilener Bazalari =====
+
+  postgresql:
+    image: postgres:16-alpine
+    container_name: arti_postgresql
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: arti_2026
+      POSTGRES_USER: arti_admin
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/database/schemas:/docker-entrypoint-initdb.d
+    networks:
+      - arti_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U arti_admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: arti_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    networks:
+      - arti_network
+
+  mongodb:
+    image: mongo:7
+    container_name: arti_mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: arti_mongo
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_INITDB_DATABASE: arti_content
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - arti_network
+
+  # ===== Backend Xidmetleri =====
+
+  api_gateway:
+    build:
+      context: ./infrastructure/api/gateway
+      dockerfile: Dockerfile
+    container_name: arti_api_gateway
+    restart: always
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - ./apps:/app/apps
+      - ./modules:/app/modules
+    networks:
+      - arti_network
+
+  agent_service:
+    build:
+      context: ./agent
+      dockerfile: Dockerfile
+    container_name: arti_agent
+    restart: always
+    ports:
+      - "8001:8001"
+    env_file:
+      - .env
+    depends_on:
+      - api_gateway
+      - redis
+    volumes:
+      - ./agent:/app/agent
+      - agent_memory:/app/memory
+    networks:
+      - arti_network
+
+  assessment_service:
+    build:
+      context: ./modules/assessment
+      dockerfile: Dockerfile
+    container_name: arti_assessment
+    restart: always
+    ports:
+      - "8002:8002"
+    env_file:
+      - .env
+    depends_on:
+      - postgresql
+      - redis
+    networks:
+      - arti_network
+
+  certification_service:
+    build:
+      context: ./modules/certification
+      dockerfile: Dockerfile
+    container_name: arti_certification
+    restart: always
+    ports:
+      - "8003:8003"
+    env_file:
+      - .env
+    depends_on:
+      - postgresql
+      - mongodb
+    networks:
+      - arti_network
+
+  exam_platform:
+    build:
+      context: ./apps/exam_platform
+      dockerfile: Dockerfile
+    container_name: arti_exam_platform
+    restart: always
+    ports:
+      - "8004:8004"
+    env_file:
+      - .env
+    depends_on:
+      - assessment_service
+      - certification_service
+    networks:
+      - arti_network
+
+  # ===== Frontend =====
+
+  web_portal:
+    build:
+      context: ./apps/web_portal/frontend
+      dockerfile: Dockerfile
+    container_name: arti_web_portal
+    restart: always
+    ports:
+      - "3001:3000"
+    networks:
+      - arti_network
+
+  admin_dashboard:
+    build:
+      context: ./apps/admin_dashboard/frontend
+      dockerfile: Dockerfile
+    container_name: arti_admin_dashboard
+    restart: always
+    ports:
+      - "3002:3000"
+    networks:
+      - arti_network
+
+  # ===== Monitorinq =====
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: arti_prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infrastructure/monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - arti_network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: arti_grafana
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./infrastructure/monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+    depends_on:
+      - prometheus
+    networks:
+      - arti_network
+
+  # ===== Reverse Proxy =====
+
+  nginx:
+    image: nginx:alpine
+    container_name: arti_nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./infrastructure/server/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./infrastructure/server/ssl:/etc/nginx/ssl
+    depends_on:
+      - api_gateway
+      - web_portal
+      - admin_dashboard
+    networks:
+      - arti_network
+
+# ===== Volumes =====
+volumes:
+  postgres_data:
+    name: arti_postgres_data
+  redis_data:
+    name: arti_redis_data
+  mongo_data:
+    name: arti_mongo_data
+  prometheus_data:
+    name: arti_prometheus_data
+  grafana_data:
+    name: arti_grafana_data
+  agent_memory:
+    name: arti_agent_memory
+
+# ===== Network =====
+networks:
+  arti_network:
+    name: arti_network
+    driver: bridge
