@@ -1,0 +1,121 @@
+# =============================================
+# ARTI-2026: Müəllim Modulu - UI Komponentləri
+# =============================================
+
+# --- Müəllim Siyahısı UI ---
+teacher_list_ui <- function(id) {
+  ns <- NS(id)
+  tagList(
+    fluidRow(column(12, h2(icon("chalkboard-teacher"), "Müəllim Siyahısı"), hr())),
+    fluidRow(
+      column(3, selectInput(ns("filter_subject"), "Fənn:", choices = c("Hamısı" = "", SUBJECTS))),
+      column(3, selectInput(ns("filter_category"), "Kateqoriya:", choices = c("Hamısı" = "", TEACHER_CATEGORIES))),
+      column(3, selectInput(ns("filter_school"), "Məktəb:", choices = c("Hamısı" = ""))),
+      column(3, textInput(ns("search_text"), "Axtar:", placeholder = "Ad, soyad..."))
+    ),
+    fluidRow(column(12, div(class = "btn-toolbar",
+      actionButton(ns("btn_add"), "Yeni Müəllim", icon = icon("plus"), class = "btn-success"),
+      actionButton(ns("btn_edit"), "Redaktə", icon = icon("edit"), class = "btn-primary"),
+      actionButton(ns("btn_delete"), "Sil", icon = icon("trash"), class = "btn-danger"),
+      downloadButton(ns("btn_export"), "Excel-ə İxrac", class = "btn-info")
+    ))),
+    br(),
+    fluidRow(column(12, DTOutput(ns("teacher_table")))),
+    uiOutput(ns("teacher_modal"))
+  )
+}
+
+# --- Müəllim İş Yükü UI ---
+teacher_workload_ui <- function(id) {
+  ns <- NS(id)
+  tagList(
+    fluidRow(column(12, h2(icon("calendar-alt"), "Müəllim İş Yükü"), hr())),
+    fluidRow(
+      column(4, selectInput(ns("selected_teacher"), "Müəllim:", choices = NULL)),
+      column(4, selectInput(ns("semester"), "Yarımil:", choices = c("I yarımil" = 1, "II yarımil" = 2))),
+      column(4, selectInput(ns("year"), "Tədris ili:", choices = c("2025-2026", "2024-2025")))
+    ),
+    fluidRow(
+      column(3, wellPanel(h4("Ümumi Saat"), h2(textOutput(ns("total_hours")), class = "text-center"), helpText("Həftəlik dərs saatı"))),
+      column(3, wellPanel(h4("Minimum"), h2("18 saat", class = "text-center text-info"), helpText("Həftəlik minimum"))),
+      column(3, wellPanel(h4("Maksimum"), h2("36 saat", class = "text-center text-warning"), helpText("Həftəlik maksimum"))),
+      column(3, wellPanel(h4("Status"), uiOutput(ns("workload_status")), helpText("İş yükü vəziyyəti")))
+    ),
+    fluidRow(column(12, wellPanel(
+      h4(icon("table"), "Həftəlik Dərs Cədvəli"),
+      uiOutput(ns("schedule_grid")),
+      actionButton(ns("btn_save"), "Yadda Saxla", icon = icon("save"), class = "btn-success"),
+      actionButton(ns("btn_clear"), "Təmizlə", icon = icon("eraser"), class = "btn-warning")
+    ))),
+    fluidRow(
+      column(6, wellPanel(h4("Fənn Bölgüsü"), plotlyOutput(ns("subject_chart"), height = "300px"))),
+      column(6, wellPanel(h4("Günlər Üzrə"), plotlyOutput(ns("daily_chart"), height = "300px")))
+    )
+  )
+}
+
+# --- Peşəkar İnkişaf UI ---
+teacher_development_ui <- function(id) {
+  ns <- NS(id)
+  tagList(
+    fluidRow(column(12, h2(icon("graduation-cap"), "Peşəkar İnkişaf"), hr())),
+    fluidRow(
+      column(6, selectInput(ns("selected_teacher"), "Müəllim:", choices = NULL)),
+      column(6, dateRangeInput(ns("date_range"), "Tarix:", start = Sys.Date()-365, end = Sys.Date(), separator = " - "))
+    ),
+    fluidRow(
+      column(3, wellPanel(h4("Təlimlər"), h2(textOutput(ns("training_count")), class = "text-center text-primary"))),
+      column(3, wellPanel(h4("Sertifikatlar"), h2(textOutput(ns("cert_count")), class = "text-center text-success"))),
+      column(3, wellPanel(h4("Təlim Saatları"), h2(textOutput(ns("training_hours")), class = "text-center text-info"))),
+      column(3, wellPanel(h4("Attestasiya"), h2(textOutput(ns("next_attestation")), class = "text-center text-warning")))
+    ),
+    fluidRow(column(12,
+      h4("Təlim Tarixçəsi"),
+      actionButton(ns("btn_add_training"), "Yeni Təlim", icon = icon("plus"), class = "btn-success"),
+      br(), br(), DTOutput(ns("training_table"))
+    )),
+    fluidRow(column(12,
+      h4("Sertifikatlar"),
+      actionButton(ns("btn_add_cert"), "Yeni Sertifikat", icon = icon("plus"), class = "btn-success"),
+      br(), br(), DTOutput(ns("cert_table"))
+    ))
+  )
+}
+
+# --- Performans UI ---
+teacher_performance_ui <- function(id) {
+  ns <- NS(id)
+  tagList(
+    fluidRow(column(12, h2(icon("chart-line"), "Performans Qiymətləndirməsi"), hr())),
+    fluidRow(
+      column(4, selectInput(ns("selected_teacher"), "Müəllim:", choices = NULL)),
+      column(4, selectInput(ns("period"), "Dövr:", choices = c("Cari yarımil" = "current", "Tam il" = "full_year"))),
+      column(4, div(style = "margin-top:25px", downloadButton(ns("btn_report"), "Hesabat Yarat", class = "btn-primary")))
+    ),
+    fluidRow(
+      column(3, wellPanel(h4(icon("users"), "Şagird Nəticələri"), h2(textOutput(ns("kpi_students")), class = "text-center"))),
+      column(3, wellPanel(h4(icon("clock"), "Davamiyyət"), h2(textOutput(ns("kpi_attendance")), class = "text-center"))),
+      column(3, wellPanel(h4(icon("award"), "İnkişaf"), h2(textOutput(ns("kpi_development")), class = "text-center"))),
+      column(3, wellPanel(h4(icon("star"), "Ümumi"), h2(textOutput(ns("kpi_overall")), class = "text-center")))
+    ),
+    fluidRow(
+      column(6, wellPanel(plotlyOutput(ns("outcomes_chart"), height = "300px"))),
+      column(6, wellPanel(plotlyOutput(ns("trend_chart"), height = "300px")))
+    ),
+    fluidRow(column(12, wellPanel(
+      h4("Qiymətləndirmə Formu"),
+      fluidRow(
+        column(4, sliderInput(ns("eval_teaching"), "Tədris keyfiyyəti", 1, 10, 5)),
+        column(4, sliderInput(ns("eval_classroom"), "Sinif idarəetməsi", 1, 10, 5)),
+        column(4, sliderInput(ns("eval_parent"), "Valideyn əlaqəsi", 1, 10, 5))
+      ),
+      fluidRow(
+        column(4, sliderInput(ns("eval_professional"), "Peşəkarlıq", 1, 10, 5)),
+        column(4, sliderInput(ns("eval_innovation"), "İnnovasiya", 1, 10, 5)),
+        column(4, sliderInput(ns("eval_teamwork"), "Komanda işi", 1, 10, 5))
+      ),
+      textAreaInput(ns("eval_notes"), "Qeydlər:", rows = 3, width = "100%"),
+      actionButton(ns("btn_save_eval"), "Yadda Saxla", icon = icon("save"), class = "btn-success")
+    )))
+  )
+}

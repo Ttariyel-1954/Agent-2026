@@ -1,0 +1,47 @@
+Sən kurikulum analizi mütəxəssisisən. Verilmiş kurikulum standartları ilə qiymətləndirmə sualları arasındakı uyğunluğu təhlil et.
+
+KURIKULUM STANDARTLARI:
+%s
+
+QİYMƏTLƏNDİRMƏ SUALLARI:
+%s
+
+Aşağıdakıları analiz et:
+
+1. ƏHATƏ ANALİZİ:
+   - Hər standartın ən azı bir sualla əhatə olunub-olunmadığını yoxla
+   - Əhatə faizini hesabla
+
+2. WEBB DOK UYĞUNLUQ:
+   - Standartların DOK səviyyələri ilə sualların DOK səviyyələrini müqayisə et
+   - Webb uyğunluq indeksini hesabla
+
+3. BOŞLUQLAR:
+   - Heç bir sualla əhatə olunmayan standartları tap
+   - Bu boşluqların təsirini qiymətləndir
+
+4. ARTIQLILAR:
+   - Həddindən artıq qiymətləndirmiş standartları tap (3-dən çox sual)
+
+5. TÖVSİYƏLƏR:
+   - Uyğunluğu yaxşılaşdırmaq üçün konkret tövsiyələr ver
+   - Hansı sahələrdə əlavə suallar lazımdır
+
+Cavabı aşağıdakı JSON formatında qaytar:
+{
+  "coverage": 75.5,
+  "webb_index": 0.82,
+  "gaps": ["Standart kodu 1", "Standart kodu 2"],
+  "redundancies": ["Standart kodu 3"],
+  "dok_alignment": {
+    "dok1": {"standards": 5, "items": 8},
+    "dok2": {"standards": 8, "items": 6},
+    "dok3": {"standards": 4, "items": 3},
+    "dok4": {"standards": 2, "items": 1}
+  },
+  "recommendations": [
+    "Tövsiyə 1",
+    "Tövsiyə 2"
+  ],
+  "summary": "Ümumi qiymətləndirmə"
+}

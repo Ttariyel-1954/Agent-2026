@@ -1,0 +1,563 @@
+/* =============================================
+   ARTI-2026: Xüsusi CSS Stilləri
+   ============================================= */
+
+/* =============================================
+   1. Ümumi Stillər
+   ============================================= */
+
+:root {
+  --arti-primary: #2c3e50;
+  --arti-secondary: #3498db;
+  --arti-success: #27ae60;
+  --arti-warning: #f39c12;
+  --arti-danger: #e74c3c;
+  --arti-info: #17a2b8;
+  --arti-light: #ecf0f1;
+  --arti-dark: #2c3e50;
+  --arti-border-radius: 8px;
+  --arti-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  --arti-transition: all 0.3s ease;
+}
+
+body {
+  font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  background-color: #f4f6f9;
+}
+
+.content-wrapper {
+  background-color: #f4f6f9;
+}
+
+/* =============================================
+   2. Sidebar
+   ============================================= */
+
+.main-sidebar {
+  background: linear-gradient(180deg, var(--arti-primary) 0%, #1a252f 100%);
+}
+
+.main-sidebar .sidebar-menu > li.active > a {
+  background-color: var(--arti-secondary);
+  border-left: 3px solid #fff;
+  color: #fff;
+}
+
+.main-sidebar .sidebar-menu > li > a:hover {
+  background-color: rgba(52, 152, 219, 0.3);
+  transition: var(--arti-transition);
+}
+
+.main-sidebar .sidebar-menu > li > a {
+  border-left: 3px solid transparent;
+  transition: var(--arti-transition);
+}
+
+.sidebar-menu .treeview-menu > li > a:hover {
+  background-color: rgba(255,255,255,0.1);
+}
+
+.user-panel {
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+/* =============================================
+   3. Header / Navbar
+   ============================================= */
+
+.main-header .navbar {
+  background: linear-gradient(135deg, var(--arti-primary) 0%, var(--arti-secondary) 100%);
+}
+
+.main-header .logo {
+  background: rgba(0,0,0,0.15);
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.main-header .logo:hover {
+  background: rgba(0,0,0,0.2);
+}
+
+.navbar-nav > li > a {
+  color: rgba(255,255,255,0.8) !important;
+}
+
+.navbar-nav > li > a:hover {
+  color: #fff !important;
+}
+
+/* =============================================
+   4. Kartlar və Panellər
+   ============================================= */
+
+.well, .wellPanel, .panel {
+  border-radius: var(--arti-border-radius);
+  box-shadow: var(--arti-shadow);
+  border: none;
+  transition: var(--arti-transition);
+}
+
+.well:hover, .wellPanel:hover {
+  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+  transform: translateY(-1px);
+}
+
+.box {
+  border-radius: var(--arti-border-radius);
+  box-shadow: var(--arti-shadow);
+  border-top: 3px solid var(--arti-secondary);
+}
+
+.box-header {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+/* =============================================
+   5. Value Box-lar
+   ============================================= */
+
+.small-box {
+  border-radius: var(--arti-border-radius);
+  box-shadow: var(--arti-shadow);
+  transition: var(--arti-transition);
+  overflow: hidden;
+}
+
+.small-box:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+}
+
+.small-box .icon {
+  opacity: 0.15;
+  font-size: 70px;
+  top: 5px;
+}
+
+.small-box h3 {
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.info-box {
+  border-radius: var(--arti-border-radius);
+  box-shadow: var(--arti-shadow);
+  min-height: 80px;
+}
+
+.info-box-icon {
+  border-radius: var(--arti-border-radius) 0 0 var(--arti-border-radius);
+}
+
+/* =============================================
+   6. Düymələr
+   ============================================= */
+
+.btn {
+  border-radius: 5px;
+  font-weight: 500;
+  transition: var(--arti-transition);
+  text-transform: none;
+  letter-spacing: 0.3px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--arti-secondary) 0%, #2980b9 100%);
+  border: none;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #2980b9 0%, #2471a3 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(52,152,219,0.4);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, var(--arti-success) 0%, #219a52 100%);
+  border: none;
+}
+
+.btn-success:hover {
+  background: linear-gradient(135deg, #219a52 0%, #1e8449 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(39,174,96,0.4);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, var(--arti-danger) 0%, #c0392b 100%);
+  border: none;
+}
+
+.btn-warning {
+  background: linear-gradient(135deg, var(--arti-warning) 0%, #e67e22 100%);
+  border: none;
+  color: #fff;
+}
+
+.btn-lg {
+  padding: 12px 30px;
+  font-size: 16px;
+}
+
+.btn-group .btn {
+  border-radius: 0;
+}
+
+.btn-group .btn:first-child {
+  border-radius: 5px 0 0 5px;
+}
+
+.btn-group .btn:last-child {
+  border-radius: 0 5px 5px 0;
+}
+
+/* =============================================
+   7. Formlar
+   ============================================= */
+
+.form-control {
+  border-radius: 5px;
+  border: 1px solid #dce4ec;
+  padding: 8px 12px;
+  transition: var(--arti-transition);
+}
+
+.form-control:focus {
+  border-color: var(--arti-secondary);
+  box-shadow: 0 0 0 3px rgba(52,152,219,0.15);
+}
+
+.selectize-input {
+  border-radius: 5px !important;
+  border: 1px solid #dce4ec !important;
+}
+
+.selectize-input.focus {
+  border-color: var(--arti-secondary) !important;
+  box-shadow: 0 0 0 3px rgba(52,152,219,0.15) !important;
+}
+
+label {
+  font-weight: 600;
+  color: var(--arti-dark);
+  margin-bottom: 5px;
+}
+
+.shiny-input-container {
+  margin-bottom: 15px;
+}
+
+/* =============================================
+   8. Cədvəllər (DataTables)
+   ============================================= */
+
+.dataTables_wrapper {
+  padding: 10px 0;
+}
+
+table.dataTable thead th {
+  background-color: var(--arti-primary);
+  color: #fff;
+  font-weight: 600;
+  border-bottom: none;
+  padding: 12px 15px;
+}
+
+table.dataTable thead th:first-child {
+  border-radius: var(--arti-border-radius) 0 0 0;
+}
+
+table.dataTable thead th:last-child {
+  border-radius: 0 var(--arti-border-radius) 0 0;
+}
+
+table.dataTable tbody tr:hover {
+  background-color: rgba(52,152,219,0.08) !important;
+}
+
+table.dataTable tbody td {
+  padding: 10px 15px;
+  vertical-align: middle;
+}
+
+table.dataTable.stripe tbody tr.odd {
+  background-color: #fafbfc;
+}
+
+.dataTables_paginate .paginate_button.current {
+  background: var(--arti-secondary) !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 5px;
+}
+
+.dataTables_filter input {
+  border-radius: 20px;
+  padding: 5px 15px;
+  border: 1px solid #dce4ec;
+}
+
+/* =============================================
+   9. Qrafiklər
+   ============================================= */
+
+.plotly {
+  border-radius: var(--arti-border-radius);
+}
+
+.js-plotly-plot .plotly .modebar {
+  top: 5px !important;
+  right: 5px !important;
+}
+
+/* =============================================
+   10. Bildirişlər
+   ============================================= */
+
+.shiny-notification {
+  border-radius: var(--arti-border-radius);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  border: none;
+  padding: 15px 20px;
+}
+
+.shiny-notification-message {
+  border-left: 4px solid var(--arti-secondary);
+}
+
+.shiny-notification-warning {
+  border-left: 4px solid var(--arti-warning);
+}
+
+.shiny-notification-error {
+  border-left: 4px solid var(--arti-danger);
+}
+
+/* =============================================
+   11. Yükləmə Ekranı
+   ============================================= */
+
+#waiter-overlay {
+  background: linear-gradient(135deg, var(--arti-primary) 0%, var(--arti-secondary) 100%) !important;
+}
+
+.waiter-text {
+  font-size: 24px;
+  color: #fff;
+  margin-top: 20px;
+}
+
+/* =============================================
+   12. Tablar
+   ============================================= */
+
+.nav-tabs > li.active > a {
+  border-bottom: 3px solid var(--arti-secondary);
+  color: var(--arti-secondary);
+  font-weight: 600;
+}
+
+.nav-tabs > li > a {
+  color: #666;
+  transition: var(--arti-transition);
+}
+
+.nav-tabs > li > a:hover {
+  color: var(--arti-secondary);
+  background: rgba(52,152,219,0.05);
+}
+
+.tab-content {
+  padding: 20px 0;
+}
+
+/* =============================================
+   13. Badge-lər
+   ============================================= */
+
+.badge-ela {
+  background-color: var(--arti-success);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.badge-yaxsi {
+  background-color: var(--arti-secondary);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.badge-kafi {
+  background-color: var(--arti-warning);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.badge-qeyrikafi {
+  background-color: var(--arti-danger);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+/* =============================================
+   14. Hesabat Önbaxış
+   ============================================= */
+
+.report-preview {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: var(--arti-border-radius);
+  min-height: 300px;
+  padding: 20px;
+}
+
+.report-preview h3 {
+  color: var(--arti-primary);
+  border-bottom: 2px solid var(--arti-secondary);
+  padding-bottom: 10px;
+}
+
+/* =============================================
+   15. AI Söhbət
+   ============================================= */
+
+.ai-chat-container {
+  border: 1px solid #e0e0e0;
+  border-radius: var(--arti-border-radius);
+  background: #fff;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.ai-message {
+  padding: 12px 16px;
+  margin: 8px;
+  border-radius: 12px;
+  max-width: 80%;
+}
+
+.ai-message.user {
+  background: var(--arti-secondary);
+  color: #fff;
+  margin-left: auto;
+  border-bottom-right-radius: 4px;
+}
+
+.ai-message.assistant {
+  background: #f0f2f5;
+  color: #333;
+  margin-right: auto;
+  border-bottom-left-radius: 4px;
+}
+
+/* =============================================
+   16. Risk Göstəriciləri
+   ============================================= */
+
+.risk-high {
+  color: var(--arti-danger);
+  font-weight: 700;
+}
+
+.risk-medium {
+  color: var(--arti-warning);
+  font-weight: 600;
+}
+
+.risk-low {
+  color: var(--arti-success);
+  font-weight: 500;
+}
+
+/* =============================================
+   17. Responsiv Düzəlişlər
+   ============================================= */
+
+@media (max-width: 768px) {
+  .small-box h3 {
+    font-size: 24px;
+  }
+
+  .content-wrapper {
+    padding: 10px;
+  }
+
+  .well {
+    margin-bottom: 10px;
+  }
+
+  .btn-lg {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .small-box h3 {
+    font-size: 20px;
+  }
+
+  table.dataTable thead th,
+  table.dataTable tbody td {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+}
+
+/* =============================================
+   18. Animasiyalar
+   ============================================= */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.well, .small-box, .info-box {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.btn-primary:active {
+  animation: pulse 0.2s;
+}
+
+/* =============================================
+   19. Çap Stilləri
+   ============================================= */
+
+@media print {
+  .main-sidebar,
+  .main-header,
+  .main-footer,
+  .btn,
+  .dataTables_filter,
+  .dataTables_paginate {
+    display: none !important;
+  }
+
+  .content-wrapper {
+    margin-left: 0 !important;
+    padding: 0 !important;
+  }
+
+  .well {
+    box-shadow: none;
+    border: 1px solid #ddd;
+    break-inside: avoid;
+  }
+}

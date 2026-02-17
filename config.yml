@@ -1,0 +1,141 @@
+# =============================================
+# ARTI-2026 Konfiqurasiya Parametrləri
+# =============================================
+
+default:
+  # Tətbiq parametrləri
+  app:
+    name: "ARTI-2026"
+    title: "Təhsil İnstitutunun İdarəetmə Sistemi"
+    version: "1.0.0"
+    language: "az"
+    timezone: "Asia/Baku"
+    date_format: "%d.%m.%Y"
+    datetime_format: "%d.%m.%Y %H:%M"
+
+  # Şagird parametrləri
+  student:
+    max_per_class: 35
+    min_attendance_percent: 75
+    grade_scale:
+      excellent: [86, 100]
+      good: [71, 85]
+      satisfactory: [51, 70]
+      unsatisfactory: [0, 50]
+    risk_threshold: 0.3
+
+  # Müəllim parametrləri
+  teacher:
+    max_weekly_hours: 36
+    min_weekly_hours: 18
+    evaluation_period_months: 6
+    categories:
+      - "Ali kateqoriya"
+      - "I kateqoriya"
+      - "II kateqoriya"
+      - "Kateqoriyasız"
+
+  # Qiymətləndirmə parametrləri
+  assessment:
+    irt:
+      model: "2PL"
+      theta_range: [-4, 4]
+      convergence_threshold: 0.001
+      max_iterations: 100
+    cat:
+      min_items: 10
+      max_items: 50
+      se_threshold: 0.3
+      initial_theta: 0
+      item_selection: "MFI"
+      exposure_control: TRUE
+      max_exposure_rate: 0.25
+    mst:
+      stages: 3
+      modules_per_stage: [1, 3, 3]
+      routing_method: "MLE"
+      panel_size: 5
+
+  # Kurikulum parametrləri
+  curriculum:
+    education_levels:
+      - id: "primary"
+        name: "İbtidai təhsil"
+        grades: [1, 2, 3, 4]
+      - id: "lower_secondary"
+        name: "Ümumi orta təhsil"
+        grades: [5, 6, 7, 8, 9]
+      - id: "upper_secondary"
+        name: "Tam orta təhsil"
+        grades: [10, 11]
+    subjects:
+      - "Azərbaycan dili"
+      - "Riyaziyyat"
+      - "Fizika"
+      - "Kimya"
+      - "Biologiya"
+      - "Tarix"
+      - "Coğrafiya"
+      - "İnformatika"
+      - "İngilis dili"
+      - "Rus dili"
+      - "Ədəbiyyat"
+      - "Musiqi"
+      - "Təsviri incəsənət"
+      - "Texnologiya"
+      - "Bədən tərbiyəsi"
+    comparison_countries:
+      - "Finland"
+      - "Singapore"
+      - "South Korea"
+      - "Estonia"
+      - "Japan"
+      - "Turkey"
+
+  # Analitika parametrləri
+  analytics:
+    refresh_interval_minutes: 30
+    prediction_model: "random_forest"
+    retention_days: 365
+    export_formats: ["pdf", "xlsx", "csv", "html"]
+    dashboard:
+      charts_per_row: 3
+      default_period: "semester"
+
+  # AI parametrləri
+  ai:
+    temperature: 0.7
+    max_retries: 3
+    timeout_seconds: 30
+    question_generation:
+      difficulties: ["asan", "orta", "çətin"]
+      bloom_levels:
+        - "Bilmə"
+        - "Anlama"
+        - "Tətbiq"
+        - "Təhlil"
+        - "Sintez"
+        - "Qiymətləndirmə"
+    feedback:
+      max_length: 500
+      language: "az"
+
+  # Təhlükəsizlik
+  security:
+    session_timeout_minutes: 60
+    max_login_attempts: 5
+    lockout_duration_minutes: 15
+    password_min_length: 8
+    require_2fa: FALSE
+
+development:
+  app:
+    debug: TRUE
+    log_level: "DEBUG"
+
+production:
+  app:
+    debug: FALSE
+    log_level: "INFO"
+  security:
+    require_2fa: TRUE
