@@ -1,0 +1,162 @@
+[
+  {
+    "school_id": "e0ceee79-8256-439c-8a2b-e0fe4fa3f151",
+    "school_name": "Mingechevir Umumi #1",
+    "school_type": "umumi",
+    "region": "Mingechevir",
+    "student_count": 522,
+    "teacher_count": 28
+  },
+  {
+    "school_id": "5f97c035-49c0-4ae0-9afc-a32cb852be67",
+    "school_name": "Baki Lisey #2",
+    "school_type": "lisey",
+    "region": "Baki",
+    "student_count": 691,
+    "teacher_count": 48
+  },
+  {
+    "school_id": "2ea56126-4099-454c-8762-04ef7d7270e8",
+    "school_name": "Sheki Gimnaziya #3",
+    "school_type": "gimnaziya",
+    "region": "Sheki",
+    "student_count": 776,
+    "teacher_count": 55
+  },
+  {
+    "school_id": "f563adab-2e25-48a0-a3a8-5eb8b2bc1fbc",
+    "school_name": "Naxchivan Umumi #4",
+    "school_type": "umumi",
+    "region": "Naxchivan",
+    "student_count": 276,
+    "teacher_count": 29
+  },
+  {
+    "school_id": "a928d0e0-c0d5-43bd-8d47-e76c13049cbd",
+    "school_name": "Shamakhi Lisey #5",
+    "school_type": "lisey",
+    "region": "Shamakhi",
+    "student_count": 508,
+    "teacher_count": 30
+  },
+  {
+    "school_id": "2096cded-819c-420e-bc83-2cf7f81d1f36",
+    "school_name": "Sumqayit Lisey #6",
+    "school_type": "lisey",
+    "region": "Sumqayit",
+    "student_count": 291,
+    "teacher_count": 56
+  },
+  {
+    "school_id": "b873c145-9ec5-48e0-bfd5-1046a46a66b7",
+    "school_name": "Naxchivan Umumi #7",
+    "school_type": "umumi",
+    "region": "Naxchivan",
+    "student_count": 770,
+    "teacher_count": 31
+  },
+  {
+    "school_id": "dc4eac55-e504-4cb2-9021-04657efd251c",
+    "school_name": "Baki Lisey #8",
+    "school_type": "lisey",
+    "region": "Baki",
+    "student_count": 493,
+    "teacher_count": 30
+  },
+  {
+    "school_id": "e4e38487-06f8-4671-a532-475183f8379d",
+    "school_name": "Sheki Lisey #9",
+    "school_type": "lisey",
+    "region": "Sheki",
+    "student_count": 501,
+    "teacher_count": 42
+  },
+  {
+    "school_id": "9f9290cb-f9bf-40a3-82ef-22c98cc28e1a",
+    "school_name": "Baki Gimnaziya #10",
+    "school_type": "gimnaziya",
+    "region": "Baki",
+    "student_count": 237,
+    "teacher_count": 36
+  },
+  {
+    "school_id": "8d7c8faa-f754-417b-8bf5-613904b35348",
+    "school_name": "Quba Lisey #11",
+    "school_type": "lisey",
+    "region": "Quba",
+    "student_count": 665,
+    "teacher_count": 39
+  },
+  {
+    "school_id": "bbd3ce6c-4779-44cc-8acd-f4771c120d1d",
+    "school_name": "Shamakhi Gimnaziya #12",
+    "school_type": "gimnaziya",
+    "region": "Shamakhi",
+    "student_count": 546,
+    "teacher_count": 20
+  },
+  {
+    "school_id": "ba96931d-302c-4c37-9c8e-15ba14eed69d",
+    "school_name": "Sheki Lisey #13",
+    "school_type": "lisey",
+    "region": "Sheki",
+    "student_count": 694,
+    "teacher_count": 52
+  },
+  {
+    "school_id": "5be47fa8-5a37-4a7d-a1d0-5b4f9c67ea0f",
+    "school_name": "Shamakhi Lisey #14",
+    "school_type": "lisey",
+    "region": "Shamakhi",
+    "student_count": 291,
+    "teacher_count": 49
+  },
+  {
+    "school_id": "7932e56f-836a-491d-9808-d016cf6a6d0e",
+    "school_name": "Quba Umumi #15",
+    "school_type": "umumi",
+    "region": "Quba",
+    "student_count": 783,
+    "teacher_count": 39
+  },
+  {
+    "school_id": "6f167436-6635-4c1b-b7a8-550ff1cda614",
+    "school_name": "Quba Umumi #16",
+    "school_type": "umumi",
+    "region": "Quba",
+    "student_count": 629,
+    "teacher_count": 48
+  },
+  {
+    "school_id": "d8ed2893-488d-4fc5-8641-eac8c67c8be6",
+    "school_name": "Shirvan Lisey #17",
+    "school_type": "lisey",
+    "region": "Shirvan",
+    "student_count": 792,
+    "teacher_count": 37
+  },
+  {
+    "school_id": "7b8e6387-a1de-411c-849f-0ade52cda37e",
+    "school_name": "Gence Lisey #18",
+    "school_type": "lisey",
+    "region": "Gence",
+    "student_count": 287,
+    "teacher_count": 30
+  },
+  {
+    "school_id": "a1cf623b-3fdf-4146-a886-232f2f0bbb95",
+    "school_name": "Shirvan Lisey #19",
+    "school_type": "lisey",
+    "region": "Shirvan",
+    "student_count": 789,
+    "teacher_count": 48
+  },
+  {
+    "school_id": "ff3c4500-5aba-48dc-a8aa-81eb337450d6",
+    "school_name": "Quba Lisey #20",
+    "school_type": "lisey",
+    "region": "Quba",
+    "student_count": 616,
+    "teacher_count": 42
+  }
+]
