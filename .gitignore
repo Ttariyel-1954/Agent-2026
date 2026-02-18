@@ -1,51 +1,11 @@
-# Mühit dəyişənləri
 .env
-.env.local
-.env.production
-
-# R
 .Rhistory
-.Rdata
 .RData
-.Rproj.user/
-*.Rproj
-
-# Paket kitabxanası
-renv/library/
-renv/staging/
-renv/cellar/
-
-# Loglar
-logs/
-*.log
-
-# Yüklənmiş fayllar
-data/uploads/
-
-# OS faylları
-.DS_Store
-Thumbs.db
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# Docker
-docker-compose.override.yml
-
-# Keş
+.Rproj.user
+logs/*.log
+node_modules/
 __pycache__/
 *.pyc
-.cache/
-
-# Test nəticələri
-tests/results/
-coverage/
-
-# Müvəqqəti fayllar
-tmp/
-temp/
-*.tmp
+.DS_Store
+app_test*.R
+app_debug*.R
