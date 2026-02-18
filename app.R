@@ -277,8 +277,6 @@ ui <- dashboardPage(
         "İnstitut Strukturu",
         tabName = "institute",
         icon = icon("building"),
-        badgeLabel = "YENİ",
-        badgeColor = "green",
         menuSubItem("Struktur", tabName = "inst_structure"),
         menuSubItem("Resurslar", tabName = "inst_resources"),
         menuSubItem("Kontingent", tabName = "inst_contingent"),
