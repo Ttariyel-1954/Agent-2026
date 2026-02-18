@@ -82,18 +82,10 @@ $(document).ready(function() {
   // 3. Sidebar Effektləri
   // =============================================
 
-  // Aktiv menyunun vurğulanması
-  $('.sidebar-menu li a').on('click', function() {
-    $('.sidebar-menu li').removeClass('active');
+  // Aktiv menyunun vurğulanması (yalnız menuSubItem-lara tətbiq)
+  $(document).on('click', '.sidebar-menu .treeview-menu li a', function() {
+    $('.sidebar-menu .treeview-menu li').removeClass('active');
     $(this).parent().addClass('active');
-  });
-
-  // Menyu elementlərinin animasiyası
-  $('.sidebar-menu > li').each(function(index) {
-    $(this).css({
-      'animation-delay': (index * 0.05) + 's',
-      'animation': 'fadeIn 0.3s ease-out forwards'
-    });
   });
 
   // =============================================

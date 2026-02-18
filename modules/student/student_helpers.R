@@ -45,7 +45,7 @@ validate_student_data <- function(data) {
 calculate_gpa <- function(db_pool, student_id, academic_year = NULL) {
   if (is.null(academic_year)) academic_year <- get_academic_year()
   result <- db_query(db_pool,
-    "SELECT AVG(score * 100.0 / NULLIF(max_score, 0)) as gpa
+    "SELECT AVG(score) as gpa
      FROM grades WHERE student_id = $1 AND academic_year = $2",
     params = list(student_id, academic_year))
   if (nrow(result) > 0 && !is.na(result$gpa[1])) round(result$gpa[1], 1) else 0

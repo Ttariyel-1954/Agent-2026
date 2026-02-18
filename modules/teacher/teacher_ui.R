@@ -8,10 +8,12 @@ teacher_list_ui <- function(id) {
   tagList(
     fluidRow(column(12, h2(icon("chalkboard-teacher"), "Müəllim Siyahısı"), hr())),
     fluidRow(
-      column(3, selectInput(ns("filter_subject"), "Fənn:", choices = c("Hamısı" = "", SUBJECTS))),
-      column(3, selectInput(ns("filter_category"), "Kateqoriya:", choices = c("Hamısı" = "", TEACHER_CATEGORIES))),
-      column(3, selectInput(ns("filter_school"), "Məktəb:", choices = c("Hamısı" = ""))),
-      column(3, textInput(ns("search_text"), "Axtar:", placeholder = "Ad, soyad..."))
+      column(2, selectInput(ns("filter_subject"), "Fənn:", choices = c("Hamısı" = "", SUBJECTS))),
+      column(2, selectInput(ns("filter_category"), "Kateqoriya:", choices = c("Hamısı" = "", TEACHER_CATEGORIES))),
+      column(2, selectInput(ns("filter_school"), "Məktəb:", choices = c("Hamısı" = ""))),
+      column(2, selectInput(ns("filter_honorary"), "Fəxri ad:", choices = c("Hamısı" = "", HONORARY_TITLES))),
+      column(2, selectInput(ns("filter_ict"), "İKT səviyyəsi:", choices = c("Hamısı" = "", ICT_COMPETENCY_LEVELS))),
+      column(2, textInput(ns("search_text"), "Axtar:", placeholder = "Ad, soyad..."))
     ),
     fluidRow(column(12, div(class = "btn-toolbar",
       actionButton(ns("btn_add"), "Yeni Müəllim", icon = icon("plus"), class = "btn-success"),
@@ -103,16 +105,39 @@ teacher_performance_ui <- function(id) {
       column(6, wellPanel(plotlyOutput(ns("trend_chart"), height = "300px")))
     ),
     fluidRow(column(12, wellPanel(
+      h4(icon("bullseye"), "TALIS Göstəriciləri"),
+      fluidRow(
+        column(6, plotlyOutput(ns("talis_radar_chart"), height = "350px")),
+        column(6,
+          h5("Həftəlik Yük Bölgüsü"),
+          plotlyOutput(ns("weekly_load_chart"), height = "150px"),
+          hr(),
+          h5("Əlavə Göstəricilər"),
+          uiOutput(ns("talis_extra_info"))
+        )
+      )
+    ))),
+    fluidRow(
+      column(6, wellPanel(
+        h4(icon("trophy"), "Mükafatlar"),
+        DTOutput(ns("awards_table"))
+      )),
+      column(6, wellPanel(
+        h4(icon("book"), "Nəşrlər"),
+        DTOutput(ns("publications_table"))
+      ))
+    ),
+    fluidRow(column(12, wellPanel(
       h4("Qiymətləndirmə Formu"),
       fluidRow(
-        column(4, sliderInput(ns("eval_teaching"), "Tədris keyfiyyəti", 1, 10, 5)),
-        column(4, sliderInput(ns("eval_classroom"), "Sinif idarəetməsi", 1, 10, 5)),
-        column(4, sliderInput(ns("eval_parent"), "Valideyn əlaqəsi", 1, 10, 5))
+        column(4, sliderInput(ns("eval_teaching"), "Tədris keyfiyyəti", 1, 5, 3, step = 0.5)),
+        column(4, sliderInput(ns("eval_classroom"), "Şagird cəlbi", 1, 5, 3, step = 0.5)),
+        column(4, sliderInput(ns("eval_parent"), "Ünsiyyət", 1, 5, 3, step = 0.5))
       ),
       fluidRow(
-        column(4, sliderInput(ns("eval_professional"), "Peşəkarlıq", 1, 10, 5)),
-        column(4, sliderInput(ns("eval_innovation"), "İnnovasiya", 1, 10, 5)),
-        column(4, sliderInput(ns("eval_teamwork"), "Komanda işi", 1, 10, 5))
+        column(4, sliderInput(ns("eval_professional"), "Peşəkar inkişaf", 1, 5, 3, step = 0.5)),
+        column(4, sliderInput(ns("eval_innovation"), "İnnovasiya", 1, 5, 3, step = 0.5)),
+        column(4)
       ),
       textAreaInput(ns("eval_notes"), "Qeydlər:", rows = 3, width = "100%"),
       actionButton(ns("btn_save_eval"), "Yadda Saxla", icon = icon("save"), class = "btn-success")

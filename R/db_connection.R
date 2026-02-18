@@ -68,7 +68,7 @@ get_total_count <- function(pool, table, where = "TRUE") {
 
 #' Orta performansı al
 get_average_performance <- function(pool) {
-  query <- "SELECT COALESCE(AVG(score * 100.0 / NULLIF(max_score, 0)), 0) as avg_perf
+  query <- "SELECT COALESCE(AVG(score), 0) as avg_perf
             FROM grades WHERE academic_year = $1"
   result <- db_query(pool, query, params = list(get_academic_year()))
   if (nrow(result) > 0) result$avg_perf[1] else 0
@@ -82,10 +82,10 @@ get_active_tests_count <- function(pool) {
 
 #' Performans trendini al (aylıq)
 get_performance_trend <- function(pool, months = 12) {
-  query <- "SELECT DATE_TRUNC('month', date) as month,
-                   AVG(score * 100.0 / NULLIF(max_score, 0)) as avg_score
-            FROM grades WHERE date >= CURRENT_DATE - make_interval(months => $1)
-            GROUP BY DATE_TRUNC('month', date) ORDER BY month"
+  query <- "SELECT DATE_TRUNC('month', grade_date) as month,
+                   AVG(score) as avg_score
+            FROM grades WHERE grade_date >= CURRENT_DATE - make_interval(months => $1)
+            GROUP BY DATE_TRUNC('month', grade_date) ORDER BY month"
   result <- db_query(pool, query, params = list(months))
   if (nrow(result) == 0) {
     data.frame(
@@ -113,7 +113,7 @@ get_recent_activities <- function(pool, limit = 10) {
 #' Fənn üzrə orta balları al
 get_subject_averages <- function(pool) {
   query <- "SELECT s.name as subject,
-                   AVG(g.score * 100.0 / NULLIF(g.max_score, 0)) as avg_score
+                   AVG(g.score) as avg_score
             FROM grades g JOIN subjects s ON g.subject_id = s.id
             WHERE g.academic_year = $1
             GROUP BY s.name ORDER BY avg_score DESC"

@@ -244,3 +244,67 @@ INST_PROJECT_STATUS <- c(
   tamamlanmis    = "Tamamlanmış",
   legv           = "Ləğv edilmiş"
 )
+
+# === Müəllim Genişləndirilmiş Göstəriciləri ===
+
+# Fəxri adlar
+HONORARY_TITLES <- c(
+  "Əməkdar müəllim",
+  "Xalq müəllimi",
+  "Qabaqcıl təhsil işçisi",
+  "Fəxri pedaqoq",
+  "İlin müəllimi"
+)
+
+# İKT kompetensiya səviyyələri
+ICT_COMPETENCY_LEVELS <- c(
+  baslangic   = "Başlanğıc",
+  orta        = "Orta",
+  irelilemis  = "İrəliləmiş",
+  ekspert     = "Ekspert"
+)
+
+# Mentorluq statusları
+MENTORING_STATUS <- c(
+  mentor  = "Mentor",
+  mentee  = "Mentee",
+  both    = "Hər ikisi",
+  none    = "Yoxdur"
+)
+
+# Mükafat növləri
+AWARD_TYPES <- c(
+  dovlet      = "Dövlət mükafatı",
+  nazirlik    = "Nazirlik mükafatı",
+  mekteb      = "Məktəb mükafatı",
+  beynelxalq  = "Beynəlxalq mükafat"
+)
+
+# Nəşr növləri
+PUBLICATION_TYPES <- c(
+  meqale              = "Məqalə",
+  kitab               = "Kitab",
+  konfrans_materiali  = "Konfrans materialı",
+  metodik_vesait      = "Metodik vəsait"
+)
+
+# TALIS benchmark göstəriciləri (OECD ortalamaları)
+TALIS_BENCHMARKS <- list(
+  self_efficacy        = list(min = 1, max = 10, oecd_avg = 7.2, label = "Öz-effektivlik"),
+  job_satisfaction     = list(min = 1, max = 10, oecd_avg = 7.5, label = "İş məmnuniyyəti"),
+  classroom_management = list(min = 1, max = 10, oecd_avg = 7.0, label = "Sinif idarəetməsi"),
+  cpd_hours            = list(min = 0, max = 500, oecd_avg = 60,  label = "PKİ saatları"),
+  cpd_impact           = list(min = 1, max = 10, oecd_avg = 6.5, label = "PKİ təsiri"),
+  collaboration        = list(min = 1, max = 10, oecd_avg = 6.8, label = "Həmkar əməkdaşlığı"),
+  student_pass_rate    = list(min = 0, max = 100, oecd_avg = 78,  label = "Keçid faizi"),
+  ict_usage            = list(min = 1, max = 10, oecd_avg = 6.0, label = "İKT istifadəsi"),
+  value_added          = list(min = -5, max = 5, oecd_avg = 0.0, label = "Əlavə dəyər")
+)
+
+# İKT istifadə tezliyi
+ICT_USAGE_FREQUENCY <- c(
+  her_ders  = "Hər dərs",
+  heftelik  = "Həftəlik",
+  ayliq     = "Aylıq",
+  nadir     = "Nadir"
+)

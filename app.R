@@ -8,11 +8,9 @@ library(shiny)
 library(shinydashboard)
 
 library(shinydashboardPlus)
-library(bslib)
 library(DBI)
 library(RPostgres)
 library(pool)
-library(config)
 library(dotenv)
 library(shinyjs)
 library(DT)
@@ -169,7 +167,6 @@ ui <- dashboardPage(
       # Şagird idarəetməsi
       menuItem(
         "Şagirdlər",
-        tabName = "students",
         icon = icon("user-graduate"),
         menuSubItem("Siyahı", tabName = "student_list"),
         menuSubItem("Qeydiyyat", tabName = "student_register"),
@@ -181,7 +178,6 @@ ui <- dashboardPage(
       # Müəllim idarəetməsi
       menuItem(
         "Müəllimlər",
-        tabName = "teachers",
         icon = icon("chalkboard-teacher"),
         menuSubItem("Siyahı", tabName = "teacher_list"),
         menuSubItem("Dərs Yükü", tabName = "teacher_workload"),
@@ -192,7 +188,6 @@ ui <- dashboardPage(
       # Qiymətləndirmə
       menuItem(
         "Qiymətləndirmə",
-        tabName = "assessment",
         icon = icon("clipboard-check"),
         menuSubItem("Sual Bankı", tabName = "item_bank"),
         menuSubItem("IRT Analiz", tabName = "irt_analysis"),
@@ -204,7 +199,6 @@ ui <- dashboardPage(
       # Kurikulum
       menuItem(
         "Kurikulum",
-        tabName = "curriculum",
         icon = icon("book"),
         menuSubItem("Standartlar", tabName = "standards"),
         menuSubItem("Beynəlxalq Müqayisə", tabName = "comparison"),
@@ -214,7 +208,6 @@ ui <- dashboardPage(
       # Analitika
       menuItem(
         "Analitika",
-        tabName = "analytics",
         icon = icon("chart-line"),
         menuSubItem("Məktəb Dashboard", tabName = "school_dashboard"),
         menuSubItem("Hesabatlar", tabName = "reports"),
@@ -224,7 +217,6 @@ ui <- dashboardPage(
       # Sertifikasiya
       menuItem(
         "Sertifikasiya",
-        tabName = "certification",
         icon = icon("certificate"),
         menuSubItem("İşə Qəbul İmtahanları", tabName = "cert_recruitment"),
         menuSubItem("Sertifikasiya İmtahanları", tabName = "cert_exams"),
@@ -235,7 +227,6 @@ ui <- dashboardPage(
       # Tədris Resursları
       menuItem(
         "Tədris Resursları",
-        tabName = "resources",
         icon = icon("book-reader"),
         menuSubItem("Tədris Proqramları", tabName = "resources_programs"),
         menuSubItem("Rəqəmsal Kontent", tabName = "resources_digital"),
@@ -245,7 +236,6 @@ ui <- dashboardPage(
       # Tədqiqat
       menuItem(
         "Tədqiqat",
-        tabName = "research",
         icon = icon("flask"),
         menuSubItem("Tədqiqatlar", tabName = "research_projects"),
         menuSubItem("Siyasət Analizi", tabName = "research_policy"),
@@ -255,7 +245,6 @@ ui <- dashboardPage(
       # DÜZƏLDİLMİŞ:
       menuItem(
         "Peşəkar İnkişaf",
-        tabName = "development",
         icon = icon("chart-line"),
         menuSubItem("Müəllim Təlimləri", tabName = "dev_training"),
         menuSubItem("Onlayn Kurslar", tabName = "dev_courses"),
@@ -265,7 +254,6 @@ ui <- dashboardPage(
       # Beynəlxalq Əməkdaşlıq
       menuItem(
         "Beynəlxalq",
-        tabName = "international",
         icon = icon("globe"),
         menuSubItem("Olimpiadalar", tabName = "intl_olympiads"),
         menuSubItem("STEAM Layihələri", tabName = "intl_steam"),
@@ -275,7 +263,6 @@ ui <- dashboardPage(
       # İnstitut Strukturu
       menuItem(
         "İnstitut Strukturu",
-        tabName = "institute",
         icon = icon("building"),
         menuSubItem("Struktur", tabName = "inst_structure"),
         menuSubItem("Resurslar", tabName = "inst_resources"),
@@ -295,7 +282,6 @@ ui <- dashboardPage(
       # İdarəetmə
       menuItem(
         "İdarəetmə",
-        tabName = "admin",
         icon = icon("cog"),
         menuSubItem("İstifadəçilər", tabName = "admin_users"),
         menuSubItem("Parametrlər", tabName = "admin_settings"),
@@ -571,13 +557,15 @@ server <- function(input, output, session) {
   })
 
   # === Autentifikasiya ===
-  user_data <- reactiveVal(NULL)
+  user_data <- reactiveVal(list(id = "guest", sub = "guest", role = "admin",
+                                full_name = "Qonaq", username = "guest",
+                                school_id = NULL, avatar = NULL))
 
   observe({
     token <- session$request$HTTP_AUTHORIZATION
     if (!is.null(token)) {
       user <- verify_jwt_token(gsub("Bearer ", "", token))
-      user_data(user)
+      if (!is.null(user)) user_data(user)
     }
   })
 
@@ -838,7 +826,9 @@ server <- function(input, output, session) {
   )
 
   # === Yükləmə ekranını gizlə ===
-  waiter_hide()
+  session$onFlushed(function() {
+    waiter_hide()
+  }, once = TRUE)
 
   log_info("ARTI-2026 uğurla başladıldı")
 }
@@ -854,4 +844,5 @@ shinyApp(
     port = as.integer(Sys.getenv("APP_PORT", 3838))
   )
 )
+
 
