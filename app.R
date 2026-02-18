@@ -92,6 +92,11 @@ source("modules/international/international_helpers.R")
 source("modules/international/international_ui.R")
 source("modules/international/international_server.R")
 
+# İnstitut Strukturu modulu
+source("modules/institute/institute_helpers.R")
+source("modules/institute/institute_ui.R")
+source("modules/institute/institute_server.R")
+
 # AI İnteqrasiya
 source("ai_integration/claude_api.R")
 source("ai_integration/gpt_api.R")
@@ -267,6 +272,19 @@ ui <- dashboardPage(
         menuSubItem("Partnyor Proqramları", tabName = "intl_partners")
       ),
 
+      # İnstitut Strukturu
+      menuItem(
+        "İnstitut Strukturu",
+        tabName = "institute",
+        icon = icon("building"),
+        badgeLabel = "YENİ",
+        badgeColor = "green",
+        menuSubItem("Struktur", tabName = "inst_structure"),
+        menuSubItem("Resurslar", tabName = "inst_resources"),
+        menuSubItem("Kontingent", tabName = "inst_contingent"),
+        menuSubItem("Monitorinq", tabName = "inst_monitoring")
+      ),
+
       # AI Köməkçi
       menuItem(
         "AI Köməkçi",
@@ -425,6 +443,12 @@ ui <- dashboardPage(
       tabItem(tabName = "intl_olympiads", intl_olympiads_ui("intl_olympiads")),
       tabItem(tabName = "intl_steam", intl_steam_ui("intl_steam")),
       tabItem(tabName = "intl_partners", intl_partners_ui("intl_partners")),
+
+      # İnstitut Strukturu tabları
+      tabItem(tabName = "inst_structure", inst_structure_ui("inst_structure")),
+      tabItem(tabName = "inst_resources", inst_resources_ui("inst_resources")),
+      tabItem(tabName = "inst_contingent", inst_contingent_ui("inst_contingent")),
+      tabItem(tabName = "inst_monitoring", inst_monitoring_ui("inst_monitoring")),
 
       # AI Köməkçi
       tabItem(
@@ -722,6 +746,12 @@ server <- function(input, output, session) {
   intl_olympiads_server("intl_olympiads", db_pool, user_data)
   intl_steam_server("intl_steam", db_pool, user_data)
   intl_partners_server("intl_partners", db_pool, user_data)
+
+  # İnstitut Strukturu modulları
+  inst_structure_server("inst_structure", db_pool, user_data)
+  inst_resources_server("inst_resources", db_pool, user_data)
+  inst_contingent_server("inst_contingent", db_pool, user_data)
+  inst_monitoring_server("inst_monitoring", db_pool, user_data)
 
   # === AI Köməkçi ===
   ai_result <- reactiveVal(NULL)

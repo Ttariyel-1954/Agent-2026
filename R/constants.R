@@ -163,3 +163,84 @@ SYSTEM_LIMITS <- list(
   max_weekly_hours_teacher = 36, min_weekly_hours_teacher = 18,
   session_timeout_minutes = 60, max_login_attempts = 5
 )
+
+# === İnstitut Strukturu Sabitləri ===
+
+# Təşkilati vahid növləri
+UNIT_TYPES <- c(
+  rehberlik    = "Rəhbərlik",
+  merkez       = "Mərkəz",
+  shobe        = "Şöbə",
+  laboratoriya = "Laboratoriya",
+  bolme        = "Bölmə"
+)
+
+# İnstitut resurs növləri
+INST_RESOURCE_TYPES <- c(
+  budce     = "Büdcə",
+  avadanliq = "Avadanlıq",
+  sahe      = "Sahə (kv.m)",
+  proqram   = "Proqram Təminatı",
+  neqliyyat = "Nəqliyyat"
+)
+
+# Resurs vəziyyəti
+RESOURCE_CONDITION <- c(
+  ela       = "Əla",
+  yaxsi     = "Yaxşı",
+  kafi      = "Kafi",
+  kohnelmis = "Köhnəlmiş"
+)
+
+# Personal növləri
+PERSONNEL_TYPES <- c(
+  emedkas    = "Əməkdaş",
+  tedqiqatci = "Tədqiqatçı",
+  doktorant  = "Doktorant",
+  muqavile   = "Müqavilə ilə",
+  tecrubechi = "Təcrübəçi"
+)
+
+# Məşğulluq növləri
+EMPLOYMENT_TYPES <- c(
+  tam_shtat  = "Tam ştat",
+  yarim_shtat = "Yarım ştat",
+  muqavile   = "Müqavilə",
+  konullu    = "Könüllü"
+)
+
+# Fəaliyyət kateqoriyaları
+ACTIVITY_CATEGORIES <- c(
+  tedris     = "Tədris",
+  tedqiqat   = "Tədqiqat",
+  metodik    = "Metodik",
+  innovasiya = "İnnovasiya",
+  beynelxalq = "Beynəlxalq",
+  texnoloji  = "Texnoloji"
+)
+
+# KPI tezliyi
+KPI_FREQUENCY <- c(
+  gunluk   = "Günlük",
+  heftelik = "Həftəlik",
+  ayliq    = "Aylıq",
+  rublik   = "Rüblük",
+  illik    = "İllik"
+)
+
+# Layihə prioriteti
+PROJECT_PRIORITY <- c(
+  cox_yuksek = "Çox Yüksək",
+  yuksek     = "Yüksək",
+  orta       = "Orta",
+  asagi      = "Aşağı"
+)
+
+# İnstitut layihə statusları
+INST_PROJECT_STATUS <- c(
+  planlasdirilan = "Planlaşdırılan",
+  aktiv          = "Aktiv",
+  dayandirilan   = "Dayandırılan",
+  tamamlanmis    = "Tamamlanmış",
+  legv           = "Ləğv edilmiş"
+)
