@@ -23,11 +23,16 @@ inst_structure_ui <- function(id) {
           column(8, uiOutput(ns("org_chart"))),
           column(4,
             selectInput(ns("filter_unit_type"), "Vahid Növü:",
-              choices = c("Hamısı" = "", UNIT_TYPES),
-              selected = ""
-            ),
+              choices = c("Hamısı" = "", UNIT_TYPES), selected = ""),
             actionButton(ns("add_unit_btn"), "Yeni Vahid",
-              icon = icon("plus"), class = "btn-primary btn-block")
+              icon = icon("plus"), class = "btn-primary btn-block"),
+            actionButton(ns("edit_unit_btn"), "Redaktə Et",
+              icon = icon("edit"), class = "btn-warning btn-block"),
+            actionButton(ns("delete_unit_btn"), "Sil",
+              icon = icon("trash"), class = "btn-danger btn-block"),
+            tags$hr(),
+            downloadButton(ns("export_units_btn"), "CSV İxrac",
+              class = "btn-info btn-block")
           )
         )
       )
@@ -56,21 +61,31 @@ inst_resources_ui <- function(id) {
         solidHeader = TRUE,
         width = 12,
         fluidRow(
-          column(3,
+          column(2,
             selectInput(ns("res_unit_filter"), "Vahid:",
               choices = c("Hamısı" = ""), selected = "")
           ),
-          column(3,
+          column(2,
             selectInput(ns("res_type_filter"), "Resurs Növü:",
               choices = c("Hamısı" = "", INST_RESOURCE_TYPES), selected = "")
           ),
-          column(3,
+          column(2,
             selectInput(ns("res_condition_filter"), "Vəziyyət:",
               choices = c("Hamısı" = "", RESOURCE_CONDITION), selected = "")
           ),
-          column(3,
-            actionButton(ns("add_resource_btn"), "Yeni Resurs",
+          column(2,
+            actionButton(ns("add_resource_btn"), "Yeni",
               icon = icon("plus"), class = "btn-primary",
+              style = "margin-top: 25px; width: 100%;")
+          ),
+          column(2,
+            actionButton(ns("edit_resource_btn"), "Redaktə",
+              icon = icon("edit"), class = "btn-warning",
+              style = "margin-top: 25px; width: 100%;")
+          ),
+          column(2,
+            actionButton(ns("delete_resource_btn"), "Sil",
+              icon = icon("trash"), class = "btn-danger",
               style = "margin-top: 25px; width: 100%;")
           )
         )
@@ -82,7 +97,9 @@ inst_resources_ui <- function(id) {
         status = "info",
         solidHeader = TRUE,
         width = 8,
-        DTOutput(ns("resources_table"))
+        DTOutput(ns("resources_table")),
+        tags$br(),
+        downloadButton(ns("export_resources_btn"), "CSV İxrac", class = "btn-info")
       ),
       box(
         title = "Büdcə Paylanması",
@@ -108,21 +125,31 @@ inst_contingent_ui <- function(id) {
         solidHeader = TRUE,
         width = 12,
         fluidRow(
-          column(3,
+          column(2,
             selectInput(ns("pers_unit_filter"), "Vahid:",
               choices = c("Hamısı" = ""), selected = "")
           ),
-          column(3,
+          column(2,
             selectInput(ns("pers_type_filter"), "Personal Növü:",
               choices = c("Hamısı" = "", PERSONNEL_TYPES), selected = "")
           ),
-          column(3,
+          column(2,
             selectInput(ns("pers_employment_filter"), "Məşğulluq:",
               choices = c("Hamısı" = "", EMPLOYMENT_TYPES), selected = "")
           ),
-          column(3,
-            actionButton(ns("add_personnel_btn"), "Yeni Personal",
+          column(2,
+            actionButton(ns("add_personnel_btn"), "Yeni",
               icon = icon("plus"), class = "btn-primary",
+              style = "margin-top: 25px; width: 100%;")
+          ),
+          column(2,
+            actionButton(ns("edit_personnel_btn"), "Redaktə",
+              icon = icon("edit"), class = "btn-warning",
+              style = "margin-top: 25px; width: 100%;")
+          ),
+          column(2,
+            actionButton(ns("delete_personnel_btn"), "Sil",
+              icon = icon("trash"), class = "btn-danger",
               style = "margin-top: 25px; width: 100%;")
           )
         )
@@ -134,7 +161,9 @@ inst_contingent_ui <- function(id) {
         status = "info",
         solidHeader = TRUE,
         width = 8,
-        DTOutput(ns("personnel_table"))
+        DTOutput(ns("personnel_table")),
+        tags$br(),
+        downloadButton(ns("export_personnel_btn"), "CSV İxrac", class = "btn-info")
       ),
       column(4,
         box(
@@ -171,17 +200,22 @@ inst_monitoring_ui <- function(id) {
           title = tagList(icon("tasks"), " Fəaliyyət Sahələri"),
           value = "areas_tab",
           fluidRow(
-            column(4,
+            column(3,
               selectInput(ns("area_unit_filter"), "Vahid:",
                 choices = c("Hamısı" = ""), selected = "")
             ),
-            column(4,
+            column(3,
               selectInput(ns("area_category_filter"), "Kateqoriya:",
                 choices = c("Hamısı" = "", ACTIVITY_CATEGORIES), selected = "")
             ),
-            column(4,
+            column(3,
               actionButton(ns("add_area_btn"), "Yeni Sahə",
                 icon = icon("plus"), class = "btn-primary",
+                style = "margin-top: 25px; width: 100%;")
+            ),
+            column(3,
+              actionButton(ns("delete_area_btn"), "Sahəni Sil",
+                icon = icon("trash"), class = "btn-danger",
                 style = "margin-top: 25px; width: 100%;")
             )
           ),
@@ -218,21 +252,26 @@ inst_monitoring_ui <- function(id) {
           title = tagList(icon("project-diagram"), " Layihələr"),
           value = "projects_tab",
           fluidRow(
-            column(3,
+            column(2,
               selectInput(ns("proj_unit_filter"), "Vahid:",
                 choices = c("Hamısı" = ""), selected = "")
             ),
-            column(3,
+            column(2,
               selectInput(ns("proj_status_filter"), "Status:",
                 choices = c("Hamısı" = "", INST_PROJECT_STATUS), selected = "")
             ),
-            column(3,
+            column(2,
               selectInput(ns("proj_priority_filter"), "Prioritet:",
                 choices = c("Hamısı" = "", PROJECT_PRIORITY), selected = "")
             ),
             column(3,
               actionButton(ns("add_project_btn"), "Yeni Layihə",
                 icon = icon("plus"), class = "btn-primary",
+                style = "margin-top: 25px; width: 100%;")
+            ),
+            column(3,
+              actionButton(ns("delete_project_btn"), "Layihəni Sil",
+                icon = icon("trash"), class = "btn-danger",
                 style = "margin-top: 25px; width: 100%;")
             )
           ),

@@ -353,6 +353,13 @@ ui <- dashboardPage(
           valueBoxOutput("active_tests_box", width = 3)
         ),
         fluidRow(
+          # İnstitut metrikləri
+          valueBoxOutput("inst_units_box", width = 3),
+          valueBoxOutput("inst_personnel_box", width = 3),
+          valueBoxOutput("inst_projects_box", width = 3),
+          valueBoxOutput("inst_areas_box", width = 3)
+        ),
+        fluidRow(
           box(
             title = "Ümumi Performans Trendi",
             status = "primary",
@@ -686,6 +693,27 @@ server <- function(input, output, session) {
             marker = list(colors = c("#2ecc71", "#e74c3c", "#f1c40f")),
             textinfo = "label+percent") %>%
       layout(showlegend = TRUE)
+  })
+
+  # === İnstitut Metrikləri (Ana Səhifə) ===
+  output$inst_units_box <- renderValueBox({
+    metrics <- calculate_institute_metrics(db_pool)
+    valueBox(metrics$units, "Təşkilati Vahid", icon = icon("building"), color = "purple")
+  })
+
+  output$inst_personnel_box <- renderValueBox({
+    metrics <- calculate_institute_metrics(db_pool)
+    valueBox(metrics$personnel, "İnstitut Personalı", icon = icon("id-badge"), color = "teal")
+  })
+
+  output$inst_projects_box <- renderValueBox({
+    metrics <- calculate_institute_metrics(db_pool)
+    valueBox(metrics$projects, "Aktiv Layihə", icon = icon("project-diagram"), color = "orange")
+  })
+
+  output$inst_areas_box <- renderValueBox({
+    metrics <- calculate_institute_metrics(db_pool)
+    valueBox(metrics$areas, "Fəaliyyət Sahəsi", icon = icon("tasks"), color = "maroon")
   })
 
   # === Modulları çağır ===
