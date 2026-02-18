@@ -352,248 +352,120 @@ display: none;
 </div>
 
 
-<div id="arti-2026---azərbaycan-respublikası-təhsil-institutu" class="section level1">
-<h1>ARTI 2026 - Azərbaycan Respublikası Təhsil İnstitutu</h1>
-</div>
-<div id="vahid-rəqəmsal-təhsil-platforması-və-ai-agent-sistemi" class="section level1">
-<h1>Vahid Rəqəmsal Təhsil Platforması və AI Agent Sistemi</h1>
+<div id="arti-2026-təhsil-institutunun-hərtərəfli-idarəetmə-sistemi" class="section level1">
+<h1>ARTI-2026: Təhsil İnstitutunun Hərtərəfli İdarəetmə Sistemi</h1>
 <div id="haqqında" class="section level2">
 <h2>Haqqında</h2>
-<p>Bu layihə Azərbaycan Respublikası Təhsil İnstitutunun (ARTİ) bütün
-fəaliyyət sahələrini əhatə edən vahid rəqəmsal platforma və AI Agent
-sistemidir.</p>
-<p><strong>Qurum:</strong> Azərbaycan Respublikası Təhsil İnstitutu
-(ARTİ) <strong>Sayt:</strong> <a href="https://arti.edu.az/" class="uri">https://arti.edu.az/</a> <strong>Yaradılma tarixi:</strong>
-14 Noyabr 2016, Prezident Fərmanı №1107</p>
-<hr />
+<p><strong>ARTI-2026</strong> — Azərbaycan Respublikasının Təhsil
+İnstitutları üçün nəzərdə tutulmuş müasir, süni intellekt dəstəkli,
+hərtərəfli idarəetmə platformasıdır.</p>
+<p>Sistem aşağıdakı əsas funksionallıqları təmin edir:</p>
+<ul>
+<li><strong>Şagird İdarəetməsi</strong> — qeydiyyat, davamiyyət,
+akademik profil, fərdi inkişaf planı</li>
+<li><strong>Müəllim İdarəetməsi</strong> — kadr uçotu, dərs yükü,
+peşəkar inkişaf, performans qiymətləndirmə</li>
+<li><strong>Qiymətləndirmə Mühərriki</strong> — IRT, CAT, MST əsaslı
+adaptiv test sistemi</li>
+<li><strong>Kurikulum İdarəetməsi</strong> — standartlar, beynəlxalq
+müqayisə, uyğunluq analizi</li>
+<li><strong>Analitika və Hesabat</strong> — məktəb dashboardu, prediktiv
+analitika, avtomatik hesabatlar</li>
+<li><strong>AI İnteqrasiya</strong> — Claude və GPT ilə sual
+generasiyası, kurikulum analizi, geri bildirim</li>
+</ul>
 </div>
-<div id="layihə-strukturu" class="section level2">
-<h2>Layihə Strukturu</h2>
-<pre><code>Arti_2026/
-|
-|-- agent/                  # AI Agent sistemi (nüvə)
-|   |-- core/               # Agent mühərriki
-|   |-- plugins/            # Plugin sistemi
-|   |-- skills/             # Agent bacarıqları
-|   |-- config/             # Konfiqurasiya
-|   |-- memory/             # Agent yaddaşı
-|
-|-- modules/                # Funksional modullar
-|   |-- assessment/         # Qiymətləndirmə (CAT, MST)
-|   |-- certification/      # Sertifikasiya və işə qəbul
-|   |-- curriculum/         # Kurikulum və kontent
-|   |-- research/           # Tədqiqat və analitika
-|   |-- professional_dev/   # Peşəkar inkişaf
-|   |-- school_network/     # Məktəb şəbəkəsi
-|   |-- international/      # Beynəlxalq əməkdaşlıq
-|
-|-- infrastructure/         # Server infrastrukturu
-|   |-- server/             # Server konfiqurasiyası
-|   |-- database/           # Verilənlər bazası
-|   |-- api/                # API xidmətləri
-|   |-- security/           # Təhlükəsizlik
-|   |-- backup/             # Ehtiyat nüsxə
-|   |-- monitoring/         # Monitorinq
-|
-|-- apps/                   # Tətbiqlər
-|   |-- web_portal/         # Veb portal
-|   |-- admin_dashboard/    # Admin paneli
-|   |-- mobile/             # Mobil tətbiq
-|   |-- exam_platform/      # İmtahan platforması
-|
-|-- data/                   # Məlumat
-|-- docs/                   # Sənədləşdirmə
-|-- tests/                  # Testlər
-|-- scripts/                # Köməkçi skriptlər</code></pre>
-<hr />
-</div>
-<div id="arti-mərkəzləri-5-mərkəz" class="section level2">
-<h2>ARTİ Mərkəzləri (5 Mərkəz)</h2>
+<div id="texnologiya-yığını" class="section level2">
+<h2>Texnologiya Yığını</h2>
 <table>
 <thead>
 <tr class="header">
-<th>#</th>
-<th>Mərkəz</th>
-<th>Ünvan</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>1</td>
-<td>Tədris Resursları Mərkəzi</td>
-<td>Afiyəddin Cəlilov 86</td>
-</tr>
-<tr class="even">
-<td>2</td>
-<td>Metodik Dəstək və Peşəkar İnkişaf Mərkəzi</td>
-<td>Mir Cəlal Paşayev 71</td>
-</tr>
-<tr class="odd">
-<td>3</td>
-<td>İnsan Resursları Mərkəzi</td>
-<td>Mir Cəlal Paşayev 71</td>
-</tr>
-<tr class="even">
-<td>4</td>
-<td>Elmi-Pedaqoji Tədqiqat Mərkəzi</td>
-<td>Zərifə Əliyeva 96</td>
-</tr>
-<tr class="odd">
-<td>5</td>
-<td>Təhsil Texnologiyaları Mərkəzi</td>
-<td>Fətəli Xan Xoyski 109</td>
-</tr>
-</tbody>
-</table>
-<hr />
-</div>
-<div id="əsas-fəaliyyət-sahələri" class="section level2">
-<h2>Əsas Fəaliyyət Sahələri</h2>
-<div id="qiymətləndirmə-və-test-sistemi" class="section level3">
-<h3>1. Qiymətləndirmə və Test Sistemi</h3>
-<ul>
-<li><strong>CAT</strong> (Computerized Adaptive Testing) - Kompüter
-Adaptiv Test</li>
-<li><strong>MST</strong> (Multi-Stage Testing) - Çoxsəviyyəli Test</li>
-<li>Lisey və gimnaziyalarda onlayn test keçirmə</li>
-<li>Nəticələrin real vaxtda toplanması və analizi</li>
-</ul>
-</div>
-<div id="sertifikasiya-və-işə-qəbul" class="section level3">
-<h3>2. Sertifikasiya və İşə Qəbul</h3>
-<ul>
-<li>Müəllim işə qəbul imtahanları</li>
-<li>Sertifikasiya imtahanları</li>
-<li>Sual bazalarının yaradılması</li>
-<li>İmtahanların avtomatlaşdırılması</li>
-</ul>
-</div>
-<div id="kurikulum-və-tədris-resursları" class="section level3">
-<h3>3. Kurikulum və Tədris Resursları</h3>
-<ul>
-<li>Tədris proqramları</li>
-<li>Rəqəmsal kontent yaradılması</li>
-<li>Dərsliklər və metodik vəsaitlər</li>
-</ul>
-</div>
-<div id="tədqiqat-və-analitika" class="section level3">
-<h3>4. Tədqiqat və Analitika</h3>
-<ul>
-<li>Elmi-pedaqoji tədqiqatlar</li>
-<li>Təhsil siyasəti analizi</li>
-<li>Doktorantura proqramları</li>
-</ul>
-</div>
-<div id="peşəkar-inkişaf" class="section level3">
-<h3>5. Peşəkar İnkişaf</h3>
-<ul>
-<li>Müəllim təlimləri</li>
-<li>Onlayn kurslar</li>
-<li>Mentorluq proqramları</li>
-</ul>
-</div>
-<div id="beynəlxalq-əməkdaşlıq" class="section level3">
-<h3>6. Beynəlxalq Əməkdaşlıq</h3>
-<ul>
-<li>Olimpiadalar</li>
-<li>STEAM layihələri</li>
-<li>Partnyor proqramları</li>
-</ul>
-<hr />
-</div>
-</div>
-<div id="server-infrastrukturu-perspektiv" class="section level2">
-<h2>Server İnfrastrukturu (Perspektiv)</h2>
-<ul>
-<li>Öz serverinin yaradılması</li>
-<li>PostgreSQL + Redis + MongoDB</li>
-<li>Docker/Kubernetes ilə idarə</li>
-<li>SSL/TLS təhlükəsizlik</li>
-<li>Avtomatik ehtiyat nüsxə</li>
-<li>Real vaxt monitorinq</li>
-</ul>
-<hr />
-</div>
-<div id="texnologiyalar" class="section level2">
-<h2>Texnologiyalar</h2>
-<table>
-<thead>
-<tr class="header">
-<th>Sahə</th>
+<th>Komponent</th>
 <th>Texnologiya</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>Backend</td>
-<td>Python (FastAPI, Django)</td>
-</tr>
-<tr class="even">
 <td>Frontend</td>
-<td>React.js, Next.js</td>
-</tr>
-<tr class="odd">
-<td>Mobile</td>
-<td>React Native</td>
+<td>R Shiny + bslib + shinydashboardPlus</td>
 </tr>
 <tr class="even">
-<td>AI/ML</td>
-<td>PyTorch, scikit-learn, LangChain</td>
+<td>Backend</td>
+<td>R + plumber</td>
 </tr>
 <tr class="odd">
 <td>Database</td>
-<td>PostgreSQL, Redis, MongoDB</td>
+<td>PostgreSQL 15+</td>
 </tr>
 <tr class="even">
-<td>DevOps</td>
-<td>Docker, Kubernetes, Nginx</td>
+<td>AI</td>
+<td>Claude API + GPT API</td>
 </tr>
 <tr class="odd">
-<td>Testing</td>
-<td>pytest, Jest, Cypress</td>
+<td>Cache</td>
+<td>Redis</td>
 </tr>
 <tr class="even">
-<td>Monitoring</td>
-<td>Prometheus, Grafana</td>
+<td>Deployment</td>
+<td>Docker + Nginx</td>
 </tr>
 <tr class="odd">
-<td>CI/CD</td>
-<td>GitHub Actions</td>
+<td>Test</td>
+<td>testthat + shinytest2</td>
 </tr>
 </tbody>
 </table>
-<hr />
 </div>
-<div id="quraşdırma" class="section level2">
-<h2>Quraşdırma</h2>
-<pre class="bash"><code># 1. Reponu klonlayın
-git clone https://github.com/arti-edu-az/arti-2026.git
+<div id="tez-başlanğıc" class="section level2">
+<h2>Tez Başlanğıc</h2>
+<div id="tələblər" class="section level3">
+<h3>Tələblər</h3>
+<ul>
+<li>R &gt;= 4.3.0</li>
+<li>PostgreSQL &gt;= 15</li>
+<li>Docker &amp; Docker Compose (deployment üçün)</li>
+</ul>
+</div>
+<div id="quraşdırma" class="section level3">
+<h3>Quraşdırma</h3>
+<pre class="bash"><code># Reponu klonlayın
+git clone https://github.com/your-org/Arti_2026.git
 cd Arti_2026
 
-# 2. Virtual mühit yaradın
-python -m venv venv
-source venv/bin/activate
-
-# 3. Asılılıqları quraşdırın
-pip install -r requirements.txt
-
-# 4. Mühit dəyişənlərini konfiqurasiya edin
+# .env faylını konfiqurasiya edin
 cp .env.example .env
+# .env faylını öz parametrlərinizlə doldurun
 
-# 5. Verilənlər bazasını işə salın
-docker-compose up -d db redis
+# R paketlərini quraşdırın
+Rscript -e &quot;source(&#39;R/utils.R&#39;); install_dependencies()&quot;
 
-# 6. Miqrasiyaları işə salın
-python manage.py migrate
+# Verilənlər bazasını yaradın
+psql -U postgres -f database/schema/tables.sql
+psql -U postgres -f database/seeds/sample_data.sql
 
-# 7. Sistemi işə salın
-python manage.py runserver</code></pre>
-<hr />
+# Tətbiqi işə salın
+Rscript app.R</code></pre>
+</div>
+<div id="docker-ilə-işə-salma" class="section level3">
+<h3>Docker ilə işə salma</h3>
+<pre class="bash"><code>docker-compose up -d</code></pre>
+<p>Tətbiq <code>http://localhost:3838</code> ünvanında əlçatan
+olacaq.</p>
+</div>
+</div>
+<div id="modul-strukturu" class="section level2">
+<h2>Modul Strukturu</h2>
+<pre><code>modules/
+├── student/        # Şagird idarəetməsi
+├── teacher/        # Müəllim idarəetməsi
+├── assessment/     # IRT/CAT/MST qiymətləndirmə
+├── curriculum/     # Kurikulum idarəetməsi
+└── analytics/      # Analitika və hesabatlar</code></pre>
 </div>
 <div id="lisenziya" class="section level2">
 <h2>Lisenziya</h2>
-<p>ARTİ 2026 - Bütün hüquqlar qorunur. Azərbaycan Respublikası Təhsil
-İnstitutu © 2026</p>
+<p>Bu layihə Azərbaycan Respublikası Təhsil Nazirliyi tərəfindən
+dəstəklənir. Bütün hüquqlar qorunur (c) 2026 ARTI Komandası.</p>
 </div>
 </div>
 
