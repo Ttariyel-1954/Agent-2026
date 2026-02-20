@@ -20,7 +20,8 @@ item_bank_ui <- function(id) {
       actionButton(ns("btn_delete"), "Sil", icon = icon("trash"), class = "btn-danger"),
       actionButton(ns("btn_import"), "İdxal", icon = icon("upload"), class = "btn-info"),
       downloadButton(ns("btn_export"), "İxrac", class = "btn-warning"),
-      actionButton(ns("btn_calibrate"), "Kalibrə", icon = icon("cog"), class = "btn-secondary")
+      actionButton(ns("btn_calibrate"), "Kalibrə", icon = icon("cog"), class = "btn-secondary"),
+      actionButton(ns("btn_ai_generate"), "AI ilə Sual Yarat", icon = icon("robot"), class = "btn-info")
     ))),
     br(),
     fluidRow(column(12, DTOutput(ns("items_table")))),
@@ -117,6 +118,181 @@ item_bank_server <- function(id, db_pool, user_data) {
                       input$item_a, input$item_b, input$item_c, user_data()$id))
       if (result > 0) { removeModal(); notify_success("Sual əlavə edildi!") }
       else notify_error("Sual əlavə edilərkən xəta!")
+    })
+
+    # === AI Sual Generasiyası ===
+    ai_questions <- reactiveVal(NULL)
+
+    # Addım 2: AI parametr modalı
+    observeEvent(input$btn_ai_generate, {
+      showModal(modalDialog(
+        title = tagList(icon("robot"), "AI ilə Sual Yaratma"),
+        size = "m", easyClose = TRUE,
+        fluidRow(
+          column(6, selectInput(ns("ai_subject"), "Fənn:", choices = SUBJECTS)),
+          column(6, selectInput(ns("ai_grade"), "Sinif:", choices = 1:11))
+        ),
+        textInput(ns("ai_topic"), "Mövzu:", placeholder = "Məs: Tənliklər sistemi", width = "100%"),
+        fluidRow(
+          column(4, selectInput(ns("ai_bloom"), "Bloom səviyyəsi:",
+                                choices = c("Qarışıq", BLOOM_LEVELS))),
+          column(4, selectInput(ns("ai_difficulty"), "Çətinlik:",
+                                choices = DIFFICULTY_LEVELS)),
+          column(4, numericInput(ns("ai_count"), "Sual sayı:",
+                                 value = 5, min = 1, max = 20))
+        ),
+        footer = tagList(
+          actionButton(ns("btn_ai_run"), "Yarat", icon = icon("robot"), class = "btn-info"),
+          modalButton("Ləğv et")
+        )
+      ))
+    })
+
+    # Addım 3: Claude API çağırışı
+    observeEvent(input$btn_ai_run, {
+      req(input$ai_topic)
+      removeModal()
+
+      # Bloom hissəsi
+      bloom_text <- if (input$ai_bloom == "Qarışıq") {
+        "müxtəlif Bloom taksonomiyası səviyyələrində"
+      } else {
+        paste0(input$ai_bloom, " Bloom səviyyəsində")
+      }
+
+      prompt <- paste0(
+        "Azərbaycan dilində ", input$ai_subject, " fənni, ",
+        input$ai_grade, "-ci sinif, \"", input$ai_topic, "\" mövzusu üzrə ",
+        input$ai_count, " ədəd ", input$ai_difficulty, " çətinlikdə, ",
+        bloom_text, " çoxseçimli test sualı yarat.\n\n",
+        "Hər sual üçün: sual mətni, 4 variant (A,B,C,D), düzgün cavab, izah, Bloom səviyyəsi.\n\n",
+        "Cavabı YALNIZ JSON formatında qaytar — əlavə mətn olmasın.\n",
+        "Format: array of objects with keys: question_text, option_a, option_b, option_c, option_d, ",
+        "correct_answer (A/B/C/D), explanation, bloom_level, difficulty"
+      )
+
+      system_prompt <- paste0(
+        "Sən Azərbaycan təhsil sistemi üçün sual hazırlayan ekspert müəllimsən. ",
+        "Sualları Azərbaycan dilində, Bloom taksonomiyasına uyğun hazırla. ",
+        "Cavabı YALNIZ düzgün JSON array formatında qaytar, başqa heç nə yazma."
+      )
+
+      withProgress(message = "AI sualları yaradır...", value = 0.5, {
+        result <- tryCatch(
+          call_claude_api(prompt, system_prompt, max_tokens = 4096, temperature = 0.8),
+          error = function(e) list(success = FALSE, message = e$message)
+        )
+
+        if (!result$success) {
+          notify_error(paste("AI xətası:", result$message))
+          return()
+        }
+
+        questions <- tryCatch(
+          extract_json_from_response(result$message),
+          error = function(e) NULL
+        )
+
+        if (is.null(questions)) {
+          notify_error("AI cavabı emal edilə bilmədi. Yenidən cəhd edin.")
+          return()
+        }
+
+        # data.frame-ə çevir
+        if (!is.data.frame(questions)) {
+          questions <- tryCatch(
+            as.data.frame(do.call(rbind, lapply(questions, as.data.frame, stringsAsFactors = FALSE)),
+                          stringsAsFactors = FALSE),
+            error = function(e) NULL
+          )
+        }
+
+        if (is.null(questions) || nrow(questions) == 0) {
+          notify_error("AI heç bir sual yarada bilmədi.")
+          return()
+        }
+
+        ai_questions(questions)
+        setProgress(value = 1)
+      })
+
+      # Addım 4: Nəzərdən keçirmə modalını aç
+      req(ai_questions())
+      qs <- ai_questions()
+
+      # Hər sual üçün HTML
+      question_html <- lapply(seq_len(nrow(qs)), function(i) {
+        q <- qs[i, ]
+        correct <- toupper(trimws(q$correct_answer))
+        tags$div(
+          style = "border: 1px solid #ddd; border-radius: 8px; padding: 12px; margin-bottom: 12px;",
+          tags$strong(paste0(i, ". ", q$question_text)),
+          tags$div(style = "margin-left: 20px; margin-top: 6px;",
+            tags$div(style = if (correct == "A") "color: green; font-weight: bold;" else "", paste0("A) ", q$option_a)),
+            tags$div(style = if (correct == "B") "color: green; font-weight: bold;" else "", paste0("B) ", q$option_b)),
+            tags$div(style = if (correct == "C") "color: green; font-weight: bold;" else "", paste0("C) ", q$option_c)),
+            tags$div(style = if (correct == "D") "color: green; font-weight: bold;" else "", paste0("D) ", q$option_d))
+          ),
+          tags$div(style = "margin-top: 6px; color: #666; font-size: 0.9em;",
+            tags$em(paste0("İzah: ", q$explanation)),
+            tags$br(),
+            tags$span(paste0("Bloom: ", q$bloom_level, " | Çətinlik: ", q$difficulty))
+          )
+        )
+      })
+
+      choices <- setNames(seq_len(nrow(qs)), paste0("Sual ", seq_len(nrow(qs))))
+
+      showModal(modalDialog(
+        title = tagList(icon("check-double"), "AI Yaratdığı Suallar — Nəzərdən Keçirin"),
+        size = "l", easyClose = FALSE,
+        checkboxGroupInput(ns("ai_select"), "Saxlanılacaq sualları seçin:",
+                           choices = choices, selected = choices),
+        tags$div(question_html),
+        footer = tagList(
+          actionButton(ns("btn_ai_save"), "Seçilmişləri Saxla", icon = icon("save"), class = "btn-success"),
+          modalButton("Ləğv et")
+        )
+      ))
+    })
+
+    # Addım 5: Seçilmiş sualları DB-yə yaz
+    observeEvent(input$btn_ai_save, {
+      req(input$ai_select, ai_questions())
+      qs <- ai_questions()
+      selected_idx <- as.integer(input$ai_select)
+      saved <- 0
+
+      for (idx in selected_idx) {
+        q <- qs[idx, ]
+        options_json <- jsonlite::toJSON(
+          list(A = q$option_a, B = q$option_b, C = q$option_c, D = q$option_d),
+          auto_unbox = TRUE
+        )
+        result <- tryCatch(
+          db_execute(db_pool,
+            "INSERT INTO items (content, options_json, correct_answer, subject_id,
+             bloom_level, difficulty_label, grade_level, is_active, created_by, created_at)
+             VALUES ($1, $2, $3, (SELECT id FROM subjects WHERE name = $4),
+             $5, $6, $7, TRUE, $8, NOW())",
+            params = list(
+              q$question_text, options_json, q$correct_answer,
+              input$ai_subject, q$bloom_level, q$difficulty,
+              as.integer(input$ai_grade), user_data()$id
+            )),
+          error = function(e) 0
+        )
+        if (result > 0) saved <- saved + 1
+      }
+
+      removeModal()
+      ai_questions(NULL)
+
+      if (saved > 0) {
+        notify_success(paste0(saved, " sual əlavə edildi!"))
+      } else {
+        notify_error("Suallar əlavə edilərkən xəta baş verdi.")
+      }
     })
 
     # Kalibrə et
