@@ -232,50 +232,293 @@ student_profile_server <- function(id, db_pool, user_data) {
               type = "scatter", mode = "lines+markers") %>%
         layout(xaxis = list(title = ""), yaxis = list(title = "Orta Bal"))
     })
+
+    # =============================================
+    # AI TUTOR
+    # =============================================
+    tutor_chat <- reactiveVal(list())
+
+    # Nümunə suallar
+    observeEvent(input$tq1, { updateTextInput(session, "tutor_input", value = "Kəsr ədədləri necə toplayım?") })
+    observeEvent(input$tq2, { updateTextInput(session, "tutor_input", value = "Üçbucağın sahəsini necə tapım?") })
+    observeEvent(input$tq3, { updateTextInput(session, "tutor_input", value = "Fotosentez nədir?") })
+    observeEvent(input$tq4, { updateTextInput(session, "tutor_input", value = "Mənə test sualı ver") })
+
+    # Şagird seçiləndə söhbət tarixçəsini yüklə
+    observeEvent(input$selected_student, {
+      req(input$selected_student)
+      history <- tryCatch(
+        db_query(db_pool,
+          "SELECT role, content FROM ai_tutor_chats
+           WHERE student_id = $1 ORDER BY created_at DESC LIMIT 50",
+          params = list(input$selected_student)),
+        error = function(e) data.frame()
+      )
+      if (nrow(history) > 0) {
+        msgs <- rev(lapply(seq_len(nrow(history)), function(i) {
+          list(role = history$role[i], content = history$content[i])
+        }))
+        tutor_chat(msgs)
+      } else {
+        tutor_chat(list())
+      }
+    })
+
+    # Söhbət mesajlarını render et
+    output$tutor_messages <- renderUI({
+      msgs <- tutor_chat()
+      if (length(msgs) == 0) {
+        return(tags$div(style = "text-align: center; color: #999; padding: 40px;",
+          icon("robot", style = "font-size: 3em; color: #3498db;"), tags$br(), tags$br(),
+          tags$p("Salam! Mən sənin AI Tutor köməkçinəm."),
+          tags$p("İstənilən fənn üzrə sual verə bilərsən."),
+          tags$p(style = "font-size: 0.85em;", "Sualını yaz və ya aşağıdakı nümunələrdən birini seç.")
+        ))
+      }
+      tags$div(
+        lapply(msgs, function(msg) {
+          is_user <- msg$role == "user"
+          tags$div(
+            style = paste0(
+              "margin-bottom: 10px; padding: 10px 14px; border-radius: 14px; max-width: 85%; ",
+              "font-size: 0.92em; line-height: 1.5; ",
+              if (is_user) "background: #3498db; color: #fff; margin-left: auto; text-align: right;"
+              else "background: #f0f2f5; color: #2c3e50;"
+            ),
+            if (!is_user) tags$div(style = "margin-bottom: 4px;",
+              tags$strong(style = "color: #3498db;", icon("robot"), " AI Tutor")),
+            HTML(msg$content)
+          )
+        })
+      )
+    })
+
+    # Mesaj göndər
+    observeEvent(input$btn_tutor_send, {
+      req(input$tutor_input, input$selected_student)
+      user_msg <- trimws(input$tutor_input)
+      if (nchar(user_msg) == 0) return()
+      updateTextInput(session, "tutor_input", value = "")
+
+      student_id <- input$selected_student
+      subject <- input$tutor_subject
+
+      # İstifadəçi mesajını əlavə et
+      msgs <- tutor_chat()
+      msgs <- append(msgs, list(list(role = "user", content = htmltools::htmlEscape(user_msg))))
+      tutor_chat(msgs)
+
+      # DB-yə yaz
+      tryCatch(
+        db_execute(db_pool,
+          "INSERT INTO ai_tutor_chats (student_id, role, content, subject) VALUES ($1, 'user', $2, $3)",
+          params = list(student_id, user_msg, subject)),
+        error = function(e) NULL
+      )
+
+      # "Düşünürəm..." göstər
+      msgs <- append(msgs, list(list(role = "assistant", content = "<em>Düşünürəm...</em>")))
+      tutor_chat(msgs)
+
+      # Şagird kontekstini topla
+      student_context <- build_tutor_context(db_pool, student_id, subject, input$academic_year)
+
+      # Son 6 söhbət mesajını kontekst kimi ver
+      recent_msgs <- tail(tutor_chat(), 7)  # son 6 + düşünürəm
+      recent_msgs <- recent_msgs[sapply(recent_msgs, function(m) m$content != "<em>Düşünürəm...</em>")]
+      chat_context <- paste(sapply(tail(recent_msgs, 6), function(m) {
+        paste0(if (m$role == "user") "Şagird" else "Tutor", ": ", m$content)
+      }), collapse = "\n")
+
+      system_prompt <- paste0(
+        "Sən ", student_context$grade, "-ci sinif şagirdinə kömək edən Azərbaycan dilində danışan müəllim assistentisən. ",
+        "Şagirdin adı: ", student_context$name, ". ",
+        "Hal-hazırda ", subject, " fənni üzrə kömək edirsən. ",
+        if (nchar(student_context$strengths) > 0)
+          paste0("Şagirdin güclü tərəfləri: ", student_context$strengths, ". ") else "",
+        if (nchar(student_context$weaknesses) > 0)
+          paste0("Şagirdin zəif tərəfləri: ", student_context$weaknesses, ". ") else "",
+        "\n\nQaydalar:\n",
+        "1. Addım-addım izah et, hər addımı aydın göstər\n",
+        "2. Konkret nümunələr ver\n",
+        "3. İzahdan sonra bir test sualı ver (cavabını gizlət)\n",
+        "4. Həvəsləndirici və səbirli ol\n",
+        "5. Şagirdin səviyyəsinə uyğun dildə danış\n",
+        "6. Azərbaycan dilində cavab ver"
+      )
+
+      prompt <- paste0(
+        if (nchar(chat_context) > 0) paste0("Əvvəlki söhbət:\n", chat_context, "\n\n") else "",
+        "Şagirdin sualı: ", user_msg
+      )
+
+      # Claude API çağır
+      result <- tryCatch(
+        call_claude_api(prompt, system_prompt, max_tokens = 2048, temperature = 0.6),
+        error = function(e) list(success = FALSE, message = e$message)
+      )
+
+      # "Düşünürəm..." sil
+      msgs <- tutor_chat()
+      msgs <- msgs[-length(msgs)]
+
+      if (result$success) {
+        ai_response <- result$message
+        ai_html <- tutor_md_to_html(ai_response)
+        msgs <- append(msgs, list(list(role = "assistant", content = ai_html)))
+
+        # DB-yə yaz
+        tokens <- (result$usage$input_tokens %||% 0) + (result$usage$output_tokens %||% 0)
+        tryCatch(
+          db_execute(db_pool,
+            "INSERT INTO ai_tutor_chats (student_id, role, content, subject, tokens_used) VALUES ($1, 'assistant', $2, $3, $4)",
+            params = list(student_id, ai_response, subject, tokens)),
+          error = function(e) NULL
+        )
+      } else {
+        msgs <- append(msgs, list(list(role = "assistant",
+          content = paste0("<span style='color:#e74c3c;'>Xəta baş verdi: ", result$message, "</span>"))))
+      }
+
+      tutor_chat(msgs)
+    })
+
+    # Söhbəti təmizlə
+    observeEvent(input$btn_tutor_clear, {
+      tutor_chat(list())
+    })
+
+    # Söhbət tarixçəsi siyahısı (sağ panel)
+    output$tutor_history_list <- renderUI({
+      req(input$selected_student)
+      sessions <- tryCatch(
+        db_query(db_pool,
+          "SELECT subject, DATE(created_at) as chat_date, COUNT(*) as msg_count
+           FROM ai_tutor_chats WHERE student_id = $1
+           GROUP BY subject, DATE(created_at) ORDER BY chat_date DESC LIMIT 10",
+          params = list(input$selected_student)),
+        error = function(e) data.frame()
+      )
+      if (nrow(sessions) == 0) return(tags$p(style = "color: #999;", "Hələ söhbət yoxdur"))
+      tags$div(style = "max-height: 200px; overflow-y: auto;",
+        lapply(seq_len(nrow(sessions)), function(i) {
+          s <- sessions[i, ]
+          tags$div(style = "padding: 6px 0; border-bottom: 1px solid #eee; font-size: 0.85em;",
+            tags$strong(s$subject), tags$br(),
+            tags$small(style = "color: #888;", format(s$chat_date, "%d.%m.%Y"), " — ", s$msg_count, " mesaj")
+          )
+        })
+      )
+    })
+
+    # AI Tutor statistikası
+    output$tutor_stats <- renderUI({
+      req(input$selected_student)
+      stats <- tryCatch(
+        db_query(db_pool,
+          "SELECT COUNT(*) as total_msgs,
+                  COUNT(DISTINCT DATE(created_at)) as active_days,
+                  COUNT(DISTINCT subject) as subjects_asked,
+                  SUM(tokens_used) as total_tokens
+           FROM ai_tutor_chats WHERE student_id = $1",
+          params = list(input$selected_student)),
+        error = function(e) data.frame(total_msgs = 0, active_days = 0, subjects_asked = 0, total_tokens = 0)
+      )
+      if (nrow(stats) == 0) stats <- data.frame(total_msgs = 0, active_days = 0, subjects_asked = 0, total_tokens = 0)
+      tags$div(
+        tags$p(icon("comments"), " Cəmi mesaj: ", tags$strong(stats$total_msgs[1])),
+        tags$p(icon("calendar"), " Aktiv gün: ", tags$strong(stats$active_days[1])),
+        tags$p(icon("book"), " Fənn sayı: ", tags$strong(stats$subjects_asked[1]))
+      )
+    })
+
+    # =============================================
+    # MÜƏLLİM BAXIŞI — Şagirdin AI söhbətləri
+    # =============================================
+    output$tv_chat_table <- renderDT({
+      req(input$selected_student)
+      input$btn_tv_load  # trigger
+
+      query <- "SELECT ac.id, ac.subject, ac.role, SUBSTRING(ac.content, 1, 100) as preview,
+                       ac.created_at
+                FROM ai_tutor_chats ac
+                WHERE ac.student_id = $1 AND ac.created_at >= $2 AND ac.created_at <= ($3::date + 1)"
+      params <- list(input$selected_student, input$tv_dates[1], input$tv_dates[2])
+
+      if (!is_empty(input$tv_subject_filter)) {
+        query <- paste0(query, " AND ac.subject = $4")
+        params[[4]] <- input$tv_subject_filter
+      }
+
+      query <- paste0(query, " ORDER BY ac.created_at DESC")
+      data <- tryCatch(db_query(db_pool, query, params = params), error = function(e) data.frame())
+
+      if (nrow(data) == 0) return(datatable(data.frame("Söhbət tapılmadı" = character(0))))
+      display <- data %>% select(subject, role, preview, created_at)
+      display$role <- ifelse(display$role == "user", "Şagird", "AI Tutor")
+      names(display) <- c("Fənn", "Kim", "Məzmun", "Tarix")
+      datatable(display, selection = "single", options = default_dt_options(20))
+    })
+
+    # Seçilmiş söhbəti göstər
+    output$tv_chat_detail <- renderUI({
+      req(input$selected_student)
+      sel <- input$tv_chat_table_rows_selected
+      if (is.null(sel) || length(sel) == 0) {
+        return(tags$p(style = "color: #999;", "Söhbət seçin"))
+      }
+
+      # Seçilmiş sətirin tarixini əsas götür, o günün bütün söhbətini göstər
+      query <- "SELECT ac.subject, ac.role, ac.content, ac.created_at
+                FROM ai_tutor_chats ac
+                WHERE ac.student_id = $1 AND ac.created_at >= $2 AND ac.created_at <= ($3::date + 1)"
+      params <- list(input$selected_student, input$tv_dates[1], input$tv_dates[2])
+      if (!is_empty(input$tv_subject_filter)) {
+        query <- paste0(query, " AND ac.subject = $4")
+        params[[4]] <- input$tv_subject_filter
+      }
+      query <- paste0(query, " ORDER BY ac.created_at DESC")
+      all_data <- tryCatch(db_query(db_pool, query, params = params), error = function(e) data.frame())
+      if (nrow(all_data) == 0) return(tags$p("Məlumat yoxdur"))
+
+      # Seçilmiş mesajın tarixindən eyni gün + fənn söhbətini göstər
+      selected_row <- all_data[sel, ]
+      selected_date <- as.Date(selected_row$created_at)
+      selected_subject <- selected_row$subject
+
+      day_chat <- tryCatch(
+        db_query(db_pool,
+          "SELECT role, content, created_at FROM ai_tutor_chats
+           WHERE student_id = $1 AND subject = $2
+           AND DATE(created_at) = $3
+           ORDER BY created_at",
+          params = list(input$selected_student, selected_subject, selected_date)),
+        error = function(e) data.frame()
+      )
+
+      if (nrow(day_chat) == 0) return(tags$p("Söhbət tapılmadı"))
+
+      tags$div(style = "max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 8px; padding: 12px; background: #fafafa;",
+        tags$h5(paste0(selected_subject, " — ", format(selected_date, "%d.%m.%Y"))),
+        lapply(seq_len(nrow(day_chat)), function(i) {
+          msg <- day_chat[i, ]
+          is_user <- msg$role == "user"
+          tags$div(
+            style = paste0(
+              "margin-bottom: 8px; padding: 8px 12px; border-radius: 12px; max-width: 90%; font-size: 0.9em; ",
+              if (is_user) "background: #3498db; color: #fff; margin-left: auto; text-align: right;"
+              else "background: #e8e8e8; color: #333;"
+            ),
+            if (!is_user) tags$small(style = "color: #666;", "AI Tutor — ", format(msg$created_at, "%H:%M")),
+            if (is_user) tags$small(style = "color: #cce5ff;", "Şagird — ", format(msg$created_at, "%H:%M")),
+            tags$br(),
+            HTML(if (is_user) htmltools::htmlEscape(msg$content) else tutor_md_to_html(msg$content))
+          )
+        })
+      )
+    })
   })
 }
 
 # --- Fərdi İnkişaf Planı Server ---
-student_idp_server <- function(id, db_pool, user_data) {
-  moduleServer(id, function(input, output, session) {
-    ns <- session$ns
-
-    observe({
-      students <- db_query(db_pool,
-        "SELECT id, first_name || ' ' || last_name as name FROM students WHERE status = 'active' ORDER BY name")
-      if (nrow(students) > 0) {
-        updateSelectizeInput(session, "idp_student", choices = setNames(students$id, students$name))
-      }
-    })
-
-    output$idp_list <- renderDT({
-      req(input$idp_student)
-      data <- db_query(db_pool,
-        "SELECT id, goals_json->>'title' as goal, status, start_date, review_date
-         FROM student_idp WHERE student_id = $1 ORDER BY start_date DESC",
-        params = list(input$idp_student))
-      if (nrow(data) == 0) data <- data.frame(goal="FİP tapılmadı", status="-", start_date="-", review_date="-")
-      datatable(data, colnames = c("ID", "Hədəf", "Status", "Başlama", "Nəzərdən keçirmə"), options = list(pageLength = 10))
-    })
-
-    output$idp_progress <- renderUI({
-      tags$div(
-        tags$div(class = "progress", tags$div(class = "progress-bar bg-success", style = "width:65%", "65%")),
-        tags$p("3 hədəfdən 2-si tamamlanıb")
-      )
-    })
-
-    output$idp_stats_chart <- renderPlotly({
-      plot_ly(labels = ~c("Tamamlanmış", "Davam edən", "Gözləyən"),
-              values = ~c(5, 3, 2), type = "pie",
-              marker = list(colors = c("#27ae60", "#3498db", "#f39c12")))
-    })
-
-    output$idp_history <- renderDT({
-      datatable(data.frame(
-        Tarix = c("01.02.2026", "15.01.2026"), Qeyd = c("Riyaziyyatda irəliləyiş var", "Plan təsdiq edildi"),
-        Tərəqqi = c("Yaxşı", "Əla")
-      ), options = list(pageLength = 10, dom = "t"))
-    })
-  })
-}
+# student_idp_ui və student_idp_server modules/student/student_idp.R faylına köçürülüb

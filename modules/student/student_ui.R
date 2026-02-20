@@ -125,37 +125,84 @@ student_profile_ui <- function(id) {
       column(3, wellPanel(class = "text-center", h4("Fənn Sayı"), h2(textOutput(ns("subject_count"))))),
       column(3, wellPanel(class = "text-center", h4("Sinifdəki Yeri"), h2(textOutput(ns("class_rank")))))
     ),
-    fluidRow(
-      column(7, wellPanel(h3("Fənlər Üzrə Qiymətlər"), DTOutput(ns("grades_table")))),
-      column(5, wellPanel(h3("Qiymət Qrafiki"), plotlyOutput(ns("grades_chart"), height = "300px")),
-             wellPanel(h3("Tərəqqi"), plotlyOutput(ns("progress_chart"), height = "250px")))
+    # Tabset: Qiymətlər + AI Tutor
+    tabsetPanel(id = ns("profile_tabs"),
+      tabPanel("Qiymətlər", icon = icon("chart-bar"),
+        br(),
+        fluidRow(
+          column(7, wellPanel(h3("Fənlər Üzrə Qiymətlər"), DTOutput(ns("grades_table")))),
+          column(5, wellPanel(h3("Qiymət Qrafiki"), plotlyOutput(ns("grades_chart"), height = "300px")),
+                 wellPanel(h3("Tərəqqi"), plotlyOutput(ns("progress_chart"), height = "250px")))
+        )
+      ),
+      tabPanel("AI Tutor", icon = icon("robot"),
+        br(),
+        fluidRow(
+          column(8,
+            wellPanel(
+              style = "background: #f8f9fa;",
+              h3(icon("robot"), "AI Tutor — Fərdi Öyrənmə Köməkçisi"),
+              tags$div(id = ns("tutor_chat_box"),
+                style = "height: 420px; overflow-y: auto; border: 1px solid #ddd; border-radius: 8px; padding: 12px; background: #fff; margin-bottom: 12px;",
+                uiOutput(ns("tutor_messages"))
+              ),
+              fluidRow(
+                column(9, textInput(ns("tutor_input"), label = NULL,
+                  placeholder = "Sualını yaz... (Məs: Kəsr ədədləri necə toplayım?)", width = "100%")),
+                column(3,
+                  tags$div(style = "display: flex; gap: 6px; margin-top: 25px;",
+                    actionButton(ns("btn_tutor_send"), "Göndər", icon = icon("paper-plane"), class = "btn-info"),
+                    actionButton(ns("btn_tutor_clear"), "", icon = icon("trash-alt"), class = "btn-default", title = "Söhbəti təmizlə")
+                  )
+                )
+              ),
+              tags$div(style = "margin-top: 8px;",
+                tags$small(style = "color: #888;", "Nümunə suallar:"),
+                tags$div(style = "display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px;",
+                  actionLink(ns("tq1"), "Kəsr ədədləri necə toplayım?", class = "btn btn-outline-secondary btn-sm"),
+                  actionLink(ns("tq2"), "Üçbucağın sahəsini necə tapım?", class = "btn btn-outline-secondary btn-sm"),
+                  actionLink(ns("tq3"), "Fotosentez nədir?", class = "btn btn-outline-secondary btn-sm"),
+                  actionLink(ns("tq4"), "Mənə test sualı ver", class = "btn btn-outline-secondary btn-sm")
+                )
+              )
+            )
+          ),
+          column(4,
+            wellPanel(
+              h4(icon("info-circle"), "Fənn Seçimi"),
+              selectInput(ns("tutor_subject"), "Fənn:", choices = SUBJECTS),
+              hr(),
+              h4(icon("history"), "Söhbət Tarixçəsi"),
+              tags$small("Son söhbətlər burada göstərilir"),
+              uiOutput(ns("tutor_history_list"))
+            ),
+            wellPanel(
+              h4(icon("chart-pie"), "AI Tutor Statistikası"),
+              uiOutput(ns("tutor_stats"))
+            )
+          )
+        )
+      ),
+      tabPanel("Müəllim Baxışı", icon = icon("eye"), value = "teacher_view",
+        br(),
+        fluidRow(
+          column(12, wellPanel(
+            h3(icon("comments"), "Şagirdin AI Söhbət Tarixçəsi"),
+            fluidRow(
+              column(4, selectInput(ns("tv_subject_filter"), "Fənn filteri:", choices = c("Hamısı" = "", SUBJECTS))),
+              column(4, dateRangeInput(ns("tv_dates"), "Tarix:", start = Sys.Date()-30, end = Sys.Date())),
+              column(4, br(), actionButton(ns("btn_tv_load"), "Yüklə", icon = icon("search"), class = "btn-primary"))
+            ),
+            DTOutput(ns("tv_chat_table")),
+            hr(),
+            h4("Seçilmiş Söhbət"),
+            uiOutput(ns("tv_chat_detail"))
+          ))
+        )
+      )
     )
   )
 }
 
 # --- Fərdi İnkişaf Planı UI ---
-student_idp_ui <- function(id) {
-  ns <- NS(id)
-  tagList(
-    fluidRow(column(12, h2(icon("clipboard-list"), "Fərdi İnkişaf Planı (FİP)"), hr())),
-    fluidRow(
-      column(4, selectizeInput(ns("idp_student"), "Şagird seçin:", choices = NULL)),
-      column(4, selectInput(ns("idp_year"), "Tədris ili:", choices = c("2025-2026", "2024-2025"))),
-      column(4, br(), actionButton(ns("btn_new_idp"), "Yeni FİP Yarat", icon = icon("plus-circle"), class = "btn-success"))
-    ),
-    fluidRow(column(12, wellPanel(h3("Mövcud FİP-lər"), DTOutput(ns("idp_list"))))),
-    fluidRow(
-      column(6, wellPanel(h3(icon("tasks"), "Tərəqqi İzləmə"), uiOutput(ns("idp_progress")))),
-      column(6, wellPanel(h3(icon("chart-pie"), "FİP Statistikası"), plotlyOutput(ns("idp_stats_chart"), height = "300px")))
-    ),
-    fluidRow(column(12, wellPanel(
-      h3("Tarixçə və Qeydlər"),
-      fluidRow(
-        column(8, textAreaInput(ns("new_note"), "Yeni qeyd:", placeholder = "Tərəqqi qeydi...", rows = 2)),
-        column(2, selectInput(ns("note_progress"), "Tərəqqi:", choices = c("Əla", "Yaxşı", "Kafi", "Qeyri-kafi"))),
-        column(2, br(), actionButton(ns("btn_add_note"), "Əlavə Et", icon = icon("plus"), class = "btn-success"))
-      ),
-      DTOutput(ns("idp_history"))
-    )))
-  )
-}
+# student_idp_ui və student_idp_server modules/student/student_idp.R faylına köçürülüb

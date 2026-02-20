@@ -27,7 +27,7 @@ library(logger)
 library(waiter)
 
 # === Mühit dəyişənlərini yüklə ===
-dotenv::load_dot_env(".env")
+tryCatch(dotenv::load_dot_env(".env"), error = function(e) NULL)
 
 # === Konfiqurasiyanı yüklə ===
 app_config <- config::get(file = "config.yml")
@@ -43,6 +43,7 @@ source("R/auth.R")
 source("modules/student/student_helpers.R")
 source("modules/student/student_ui.R")
 source("modules/student/student_server.R")
+source("modules/student/student_idp.R")
 
 # Müəllim modulu
 source("modules/teacher/teacher_helpers.R")
@@ -95,22 +96,19 @@ source("modules/institute/institute_helpers.R")
 source("modules/institute/institute_ui.R")
 source("modules/institute/institute_server.R")
 
+# OCR modulu
+source("modules/ocr/ocr_helpers.R")
+source("modules/ocr/ocr_ui.R")
+source("modules/ocr/ocr_server.R")
+
 # AI İnteqrasiya
 source("ai_integration/claude_api.R")
 source("ai_integration/gpt_api.R")
 source("ai_integration/response_parser.R")
 
 # === Logger konfiqurasiyası ===
-log_appender(appender_file(Sys.getenv("LOG_FILE", "logs/arti_2026.log")))
-
-log_threshold(switch(
-  app_config$app$log_level %||% "INFO",
-  "DEBUG" = DEBUG,
-  "INFO"  = INFO,
-  "WARN"  = WARN,
-  "ERROR" = ERROR,
-  INFO
-))
+log_appender(appender_console)
+log_threshold(INFO)
 
 # =============================================
 # UI - İstifadəçi İnterfeysi
@@ -268,6 +266,18 @@ ui <- dashboardPage(
         menuSubItem("Resurslar", tabName = "inst_resources"),
         menuSubItem("Kontingent", tabName = "inst_contingent"),
         menuSubItem("Monitorinq", tabName = "inst_monitoring")
+      ),
+
+      # OCR — Şəkil Tanıma
+      menuItem(
+        "OCR Tanıma",
+        icon = icon("camera"),
+        badgeLabel = "YENİ",
+        badgeColor = "green",
+        menuSubItem("Cavab Vərəqəsi", tabName = "ocr_answer_sheet"),
+        menuSubItem("Şagird Sənədi", tabName = "ocr_student_doc"),
+        menuSubItem("Sertifikat", tabName = "ocr_certificate"),
+        menuSubItem("Tarixçə", tabName = "ocr_history")
       ),
 
       # AI Köməkçi
@@ -440,6 +450,12 @@ ui <- dashboardPage(
       tabItem(tabName = "inst_resources", inst_resources_ui("inst_resources")),
       tabItem(tabName = "inst_contingent", inst_contingent_ui("inst_contingent")),
       tabItem(tabName = "inst_monitoring", inst_monitoring_ui("inst_monitoring")),
+
+      # OCR tabları
+      tabItem(tabName = "ocr_answer_sheet", ocr_answer_sheet_ui("ocr_answer_sheet")),
+      tabItem(tabName = "ocr_student_doc", ocr_student_doc_ui("ocr_student_doc")),
+      tabItem(tabName = "ocr_certificate", ocr_certificate_ui("ocr_certificate")),
+      tabItem(tabName = "ocr_history", ocr_history_ui("ocr_history")),
 
       # AI Köməkçi
       tabItem(
@@ -767,6 +783,12 @@ server <- function(input, output, session) {
   inst_contingent_server("inst_contingent", db_pool, user_data)
   inst_monitoring_server("inst_monitoring", db_pool, user_data)
 
+  # === OCR modulları ===
+  ocr_answer_sheet_server("ocr_answer_sheet", db_pool, user_data)
+  ocr_student_doc_server("ocr_student_doc", db_pool, user_data)
+  ocr_certificate_server("ocr_certificate", db_pool, user_data)
+  ocr_history_server("ocr_history", db_pool, user_data)
+
   # === AI Köməkçi ===
   ai_result <- reactiveVal(NULL)
 
@@ -845,4 +867,5 @@ shinyApp(
   )
 )
 
-
+#lsof -ti:4040 | xargs kill -9
+#lsof -ti:3838 | xargs kill -9
