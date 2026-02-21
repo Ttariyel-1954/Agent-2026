@@ -1,3 +1,5 @@
+
+
 # ARTI-2026: İstifadəçi Təlimatı
 
 **Azərbaycan Respublikası Təhsil İnstitutu — Ağıllı Təhsil Platforması**
