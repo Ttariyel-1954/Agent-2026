@@ -1,0 +1,69 @@
+Sən tədqiqat metodologiyası üzrə ekspertsen. Aşağıdakı tədqiqat sualına ən uyğun metodologiyanı tövsiyə et.
+
+TƏDQIQAT SUALI: %s
+
+TƏDQIQAT SAHƏSİ: %s
+
+TƏDQIQAT NÖVÜ: %s
+
+MÖVCUD ƏDƏBIYYAT KONTEKSTI: %s
+
+TAPŞIRIQ:
+1. Tədqiqat dizaynını müəyyən et (kəmiyyət, keyfiyyət, qarışıq)
+2. Ən uyğun tədqiqat metodunu və onun əsaslandırmasını təqdim et
+3. Seçmə strategiyasını təklif et
+4. Məlumat toplama alətlərini tövsiyə et
+5. Etik məsələləri sadalat
+6. Tədqiqatın məhdudiyyətlərini qeyd et
+7. Alternativ metodologiyaları da təklif et
+
+QAYDA:
+- Azərbaycan təhsil kontekstinə uyğun tövsiyələr ver
+- Hər tövsiyəni akademik ədəbiyyata istinadla əsaslandır
+- Praktik tətbiq imkanlarını nəzərə al
+- Zaman və resurs məhdudiyyətlərini qeyd et
+
+JSON FORMATI ilə cavab ver:
+{
+  "research_design": {
+    "type": "kəmiyyət/keyfiyyət/qarışıq",
+    "approach": "Yanaşma adı",
+    "justification": "Niyə bu dizayn seçildi"
+  },
+  "methodology": {
+    "primary_method": "Əsas metod",
+    "description": "Metodun təsviri",
+    "strengths": ["güclü tərəf1", ...],
+    "limitations": ["məhdudiyyət1", ...],
+    "references": ["İstinad1", ...]
+  },
+  "sampling": {
+    "strategy": "Seçmə strategiyası",
+    "target_population": "Hədəf populyasiya",
+    "recommended_size": "Tövsiyə olunan seçmə həcmi",
+    "justification": "Seçmə həcminin əsaslandırması",
+    "inclusion_criteria": ["meyar1", ...],
+    "exclusion_criteria": ["meyar1", ...]
+  },
+  "data_collection": {
+    "instruments": [
+      {
+        "name": "Alət adı",
+        "type": "sorğu/müsahibə/müşahidə/test",
+        "description": "Təsviri",
+        "validity_reliability": "Etibarlılıq məlumatı"
+      }
+    ],
+    "procedure": "Məlumat toplama proseduru",
+    "timeline": "Təqribən nə qədər vaxt tələb edir"
+  },
+  "ethical_considerations": ["etik məsələ1", ...],
+  "limitations": ["məhdudiyyət1", ...],
+  "alternative_methods": [
+    {
+      "method": "Alternativ metod",
+      "pros": "Üstünlükləri",
+      "cons": "Çatışmazlıqları"
+    }
+  ]
+}

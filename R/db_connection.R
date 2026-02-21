@@ -8,30 +8,32 @@ library(RPostgres)
 library(pool)
 library(logger)
 
-#' Verilənlər bazası pool-u yarat
+#' Verilənlər bazası pool-u yarat (NULL qaytarır əgər bağlantı uğursuz olarsa)
 create_db_pool <- function() {
   tryCatch({
-    db_pool <- dbPool(
-      drv = RPostgres::Postgres(),
-      host     = Sys.getenv("DB_HOST", "localhost"),
-      port     = as.integer(Sys.getenv("DB_PORT", 5432)),
-      dbname   = Sys.getenv("DB_NAME", "arti_2026"),
-      user     = Sys.getenv("DB_USER", "arti_admin"),
-      password = Sys.getenv("DB_PASSWORD", ""),
-      minSize  = 2,
-      maxSize  = as.integer(Sys.getenv("DB_POOL_SIZE", 10)),
+    pool <- pool::dbPool(
+      RPostgres::Postgres(),
+      host = Sys.getenv("DB_HOST"),
+      port = as.integer(Sys.getenv("DB_PORT", "5432")),
+      dbname = Sys.getenv("DB_NAME", "postgres"),
+      user = Sys.getenv("DB_USER", "postgres"),
+      password = Sys.getenv("DB_PASSWORD"),
+      minSize = 1,
+      maxSize = 5,
       idleTimeout = 60000
     )
     log_info("Verilənlər bazası bağlantısı uğurla yaradıldı")
-    db_pool
+    return(pool)
   }, error = function(e) {
-    log_error("Verilənlər bazası bağlantı xətası: {e$message}")
-    stop("Verilənlər bazasına qoşulmaq mümkün olmadı: ", e$message)
+    log_error("DB bağlantı xətası: {e$message}")
+    log_warn("DEMO REJİMDƏ işləyir — DB olmadan")
+    return(NULL)
   })
 }
 
 #' Təhlükəsiz sorğu icra et (parametrli - SQL injection qorunması)
 db_query <- function(pool, query, params = NULL) {
+  if (is.null(pool)) return(data.frame())
   tryCatch({
     if (is.null(params)) dbGetQuery(pool, query)
     else dbGetQuery(pool, query, params = params)
@@ -43,6 +45,7 @@ db_query <- function(pool, query, params = NULL) {
 
 #' INSERT/UPDATE/DELETE icra et
 db_execute <- function(pool, query, params = NULL) {
+  if (is.null(pool)) return(0)
   tryCatch({
     if (is.null(params)) dbExecute(pool, query)
     else dbExecute(pool, query, params = params)
@@ -54,12 +57,14 @@ db_execute <- function(pool, query, params = NULL) {
 
 #' Tək sətir al
 db_get_one <- function(pool, query, params = NULL) {
+  if (is.null(pool)) return(NULL)
   result <- db_query(pool, query, params)
   if (nrow(result) > 0) as.list(result[1, ]) else NULL
 }
 
 #' Ümumi say al
 get_total_count <- function(pool, table, where = "TRUE") {
+  if (is.null(pool)) return(0)
   query <- sprintf("SELECT COUNT(*) as count FROM %s WHERE %s",
                    DBI::dbQuoteIdentifier(pool, table), where)
   result <- db_query(pool, query)
@@ -129,15 +134,41 @@ get_subject_averages <- function(pool) {
 #' Davamiyyət statistikası
 get_attendance_stats <- function(pool) {
   query <- "SELECT status, COUNT(*) as count FROM attendance
-            WHERE date >= DATE_TRUNC('month', CURRENT_DATE) GROUP BY status"
+            WHERE attendance_date >= DATE_TRUNC('month', CURRENT_DATE) GROUP BY status"
   result <- db_query(pool, query)
   if (nrow(result) == 0) {
     data.frame(status = c("İştirak", "Qayıb", "Gecikmiş"), count = c(850, 45, 30))
   } else result
 }
 
+#' NULL-safe wrapper: dbGetQuery
+safe_query <- function(pool, query, params = NULL) {
+  if (is.null(pool)) return(data.frame())
+  tryCatch({
+    if (is.null(params)) pool::dbGetQuery(pool, query)
+    else pool::dbGetQuery(pool, query, params = params)
+  }, error = function(e) {
+    log_error("Sorğu xətası: {e$message} | Sorğu: {query}")
+    data.frame()
+  })
+}
+
+#' NULL-safe wrapper: dbExecute
+safe_execute <- function(pool, query, params = NULL) {
+  if (is.null(pool)) return(0)
+  tryCatch({
+    if (is.null(pool)) return(0)
+    if (is.null(params)) pool::dbExecute(pool, query)
+    else pool::dbExecute(pool, query, params = params)
+  }, error = function(e) {
+    log_error("İcra xətası: {e$message} | Sorğu: {query}")
+    0
+  })
+}
+
 #' Tranzaksiya ilə əməliyyat
 db_transaction <- function(pool, callback) {
+  if (is.null(pool)) return(NULL)
   conn <- poolCheckout(pool)
   on.exit(poolReturn(conn))
   tryCatch({
@@ -154,6 +185,7 @@ db_transaction <- function(pool, callback) {
 
 #' Verilənlər bazası sağlamlıq yoxlaması
 db_health_check <- function(pool) {
+  if (is.null(pool)) return(list(status = "offline", message = "DEMO rejimi — DB yoxdur"))
   tryCatch({
     db_query(pool, "SELECT 1 as check_val")
     list(status = "healthy", message = "Bağlantı aktivdir")
@@ -164,6 +196,7 @@ db_health_check <- function(pool) {
 
 #' Miqrasiyaları icra et
 run_migrations <- function(pool, migrations_dir = "database/migrations") {
+  if (is.null(pool)) { log_warn("DB yoxdur — miqrasiyalar keçildi"); return(invisible(NULL)) }
   migration_files <- sort(list.files(migrations_dir, pattern = "\\.sql$", full.names = TRUE))
   for (file in migration_files) {
     migration_name <- basename(file)

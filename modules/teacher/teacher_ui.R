@@ -141,6 +141,91 @@ teacher_performance_ui <- function(id) {
       ),
       textAreaInput(ns("eval_notes"), "Qeydlər:", rows = 3, width = "100%"),
       actionButton(ns("btn_save_eval"), "Yadda Saxla", icon = icon("save"), class = "btn-success")
-    )))
+    ))),
+
+    # === AI Mentor Bölməsi ===
+    fluidRow(column(12, hr(), h3(icon("robot"), "AI Mentor — Həftəlik Tövsiyələr"))),
+    fluidRow(
+      column(4, wellPanel(
+        h4(icon("search"), "Zəif Sahələr (TALIS)"),
+        uiOutput(ns("weak_areas_ui")),
+        hr(),
+        actionButton(ns("btn_generate_mentor"), "Həftəlik Tövsiyə Al",
+          icon = icon("magic"), class = "btn-success btn-block"),
+        tags$small(class = "text-muted", "TALIS göstəricilərinə əsasən AI mentor tövsiyə verir")
+      )),
+      column(8,
+        wellPanel(
+          h4(icon("lightbulb"), "Bu Həftənin Tövsiyələri"),
+          uiOutput(ns("mentor_focus_ui")),
+          uiOutput(ns("mentor_recommendations_ui"))
+        ),
+        wellPanel(
+          h4(icon("play-circle"), "Tövsiyə Olunan Resurslar"),
+          DTOutput(ns("mentor_resources_table")),
+          br(),
+          fluidRow(
+            column(6, actionButton(ns("btn_mark_resource_viewed"), "Baxdım",
+              icon = icon("eye"), class = "btn-info btn-sm")),
+            column(6, selectInput(ns("resource_rating"), "Reytinq:",
+              choices = c("Seçin" = "", "1" = "1", "2" = "2", "3" = "3", "4" = "4", "5" = "5"),
+              width = "100%"))
+          )
+        )
+      )
+    ),
+
+    # === Tövsiyə Tarixçəsi ===
+    fluidRow(column(12, wellPanel(
+      h4(icon("history"), "Tövsiyə Tarixçəsi"),
+      DTOutput(ns("mentor_history_table")),
+      br(),
+      fluidRow(
+        column(4, actionButton(ns("btn_mark_completed"), "Tamamlandı",
+          icon = icon("check"), class = "btn-success btn-sm")),
+        column(4, textInput(ns("rec_feedback"), "Geri əlaqə:", placeholder = "Strategiya necə işlədi?")),
+        column(4, selectInput(ns("rec_rating"), "Qiymət:",
+          choices = c("Seçin" = "", "1" = "1", "2" = "2", "3" = "3", "4" = "4", "5" = "5")))
+      )
+    ))),
+
+    # === İrəliləyiş İzləmə ===
+    fluidRow(column(12, hr(), h3(icon("chart-line"), "İrəliləyiş İzləmə"))),
+    fluidRow(
+      column(6, wellPanel(
+        h4("TALIS İrəliləyiş Cədvəli"),
+        DTOutput(ns("progress_table"))
+      )),
+      column(6, wellPanel(
+        h4("İrəliləyiş Qrafiki"),
+        plotlyOutput(ns("progress_chart"), height = "350px")
+      ))
+    ),
+
+    # === Attestasiya Hazırlıq Planı ===
+    fluidRow(column(12, hr(), h3(icon("certificate"), "Attestasiyaya Hazırlıq Planı"))),
+    fluidRow(
+      column(4, wellPanel(
+        h4("Plan Parametrləri"),
+        selectInput(ns("att_target"), "Hədəf Kateqoriya:",
+          choices = c("Seçin..." = "", TEACHER_CATEGORIES)),
+        numericInput(ns("att_weeks"), "Plan müddəti (həftə):", value = 12, min = 4, max = 52),
+        actionButton(ns("btn_generate_att_plan"), "Plan Yarat",
+          icon = icon("robot"), class = "btn-info btn-block"),
+        hr(),
+        h5("Cari Hazırlıq Səviyyəsi"),
+        uiOutput(ns("att_readiness_ui")),
+        uiOutput(ns("att_gap_ui"))
+      )),
+      column(8, wellPanel(
+        h4("Attestasiya Planı"),
+        uiOutput(ns("att_plan_ui")),
+        hr(),
+        h5("Portfolio Maddələri"),
+        uiOutput(ns("att_portfolio_ui")),
+        h5("Lazımi Sənədlər"),
+        uiOutput(ns("att_documents_ui"))
+      ))
+    )
   )
 }

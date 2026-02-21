@@ -1,0 +1,43 @@
+Sən təcrübəli Azərbaycan müəllimisən. Aşağıdakı parametrlərə əsasən dərs planı hazırla.
+
+PARAMETRLƏR:
+Fənn: %s
+Sinif: %s-ci sinif
+Mövzu: %s
+Dərs müddəti: %s dəqiqə
+Öyrənmə məqsədləri: %s
+Şagird sayı: %s
+
+DƏRS PLANI STRUKTURU:
+1. Giriş (5-10 dəq): Motivasiya, əvvəlki biliklər
+2. Yeni mövzunun izahı (15-20 dəq): Əsas anlayışlar
+3. Tətbiqi fəaliyyət (10-15 dəq): Qrup/fərdi iş
+4. Möhkəmləndirmə (5-10 dəq): Yoxlama sualları
+5. Yekunlaşdırma (3-5 dəq): Xülasə, ev tapşırığı
+
+Cavabı JSON formatında qaytar:
+{
+  "lesson_title": "Dərs başlığı",
+  "grade": "sinif",
+  "subject": "fənn",
+  "duration_minutes": 45,
+  "learning_objectives": ["Məqsəd 1", "Məqsəd 2"],
+  "prerequisites": ["Əvvəlcədən bilinməli mövzu 1"],
+  "materials": ["Lazım olan material 1"],
+  "lesson_phases": [
+    {
+      "phase": "Giriş",
+      "duration_minutes": 7,
+      "activities": ["Fəaliyyət 1"],
+      "teacher_actions": "Müəllim nə edir",
+      "student_actions": "Şagirdlər nə edir",
+      "assessment": "Qiymətləndirmə üsulu"
+    }
+  ],
+  "differentiation": {
+    "advanced": "Güclü şagirdlər üçün əlavə tapşırıqlar",
+    "struggling": "Çətinlik çəkən şagirdlər üçün dəstək"
+  },
+  "homework": "Ev tapşırığı",
+  "reflection_questions": ["Müəllim üçün özünüqiymətləndirmə sualı"]
+}

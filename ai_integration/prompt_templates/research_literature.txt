@@ -1,0 +1,58 @@
+Sən təhsil sahəsində təcrübəli akademik tədqiqatçısan. Aşağıdakı tədqiqat sualına əsasən müvafiq ədəbiyyat icmalı hazırla.
+
+TƏDQIQAT SUALI: %s
+
+TƏDQIQAT SAHƏSİ: %s
+
+İSTİNAD FORMATI: %s
+
+MÖVCUD LAYİHƏ KONTEKSTI: %s
+
+TAPŞIRIQ:
+1. Bu tədqiqat sualı ilə birbaşa əlaqəli olan ən azı 8-12 akademik mənbə təklif et
+2. Hər mənbə üçün müvafiqlik səviyyəsini qiymətləndir (0-1 arası)
+3. Hər mənbənin əsas tapıntılarını qısaca xülasə et
+4. Mənbələr arasındakı əlaqələri və ziddiyyətləri göstər
+5. Ədəbiyyatdakı boşluqları (gaps) müəyyən et
+6. Hər mənbə üçün istifadə edilən metodologiyanı qeyd et
+
+QAYDA:
+- Yalnız təhsil, pedaqogika, psixologiya, və əlaqəli sahələrdən mənbələr təklif et
+- Real və etibarlı jurnallardan mənbələr olsun (əgər dəqiq mənbə bilmirsənsə, sahəyə uyğun realist mənbələr yarat)
+- Azərbaycan kontekstinə uyğun mənbələr də daxil et (mümkünsə)
+- Hər mənbəni həm APA, həm Harvard formatında istinad et
+- Son 10 ilin mənbələrinə üstünlük ver
+- Meta-analiz və sistematik icmallara xüsusi diqqət yetir
+
+JSON FORMATI ilə cavab ver:
+{
+  "literature_review": {
+    "summary": "Ədəbiyyat icmalının ümumi xülasəsi (3-5 cümlə)",
+    "key_themes": ["mövzu1", "mövzu2", ...],
+    "gaps": ["boşluq1", "boşluq2", ...],
+    "contradictions": ["ziddiyyət1", ...],
+    "total_sources": 10
+  },
+  "sources": [
+    {
+      "title": "Mənbə adı",
+      "authors": "Müəllif(lər)",
+      "year": 2023,
+      "journal": "Jurnal adı",
+      "volume": "cild",
+      "issue": "buraxılış",
+      "pages": "səhifələr",
+      "doi": "10.xxxx/xxxxx",
+      "abstract": "Qısa xülasə",
+      "relevance_score": 0.85,
+      "key_findings": "Əsas tapıntılar",
+      "methodology_used": "İstifadə edilən metodologiya",
+      "sample_info": "Seçmə haqqında məlumat",
+      "citation_apa": "APA formatında istinad",
+      "citation_harvard": "Harvard formatında istinad",
+      "relevance_note": "Bu mənbə niyə müvafiqdir"
+    }
+  ],
+  "suggested_search_terms": ["axtarış termini1", "termini2", ...],
+  "recommended_databases": ["ERIC", "Scopus", ...]
+}

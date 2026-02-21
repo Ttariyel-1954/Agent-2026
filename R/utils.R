@@ -196,6 +196,7 @@ get_current_semester <- function(date = Sys.Date()) {
 
 #' Log yaz
 log_action <- function(db_pool, user_id, action, entity_type = NULL, entity_id = NULL, details = NULL) {
+  if (is.null(db_pool)) return(invisible(NULL))
   tryCatch({
     DBI::dbExecute(db_pool,
       "INSERT INTO activity_log (user_id, action, entity_type, entity_id, details_json, created_at)
@@ -206,4 +207,16 @@ log_action <- function(db_pool, user_id, action, entity_type = NULL, entity_id =
   }, error = function(e) {
     logger::log_error("Log yazma xətası: {e$message}")
   })
+}
+
+# === UUID Validasiyası ===
+is_valid_uuid <- function(x) {
+  if (is.null(x) || length(x) == 0) return(FALSE)
+  grepl("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", tolower(x))
+}
+
+# === İstifadəçi ID-ni DB üçün hazırla (NULL qaytarır əgər yanlışdırsa) ===
+safe_user_id <- function(user_data_reactive) {
+  uid <- tryCatch(user_data_reactive()$id, error = function(e) NULL)
+  if (is_valid_uuid(uid)) uid else NULL
 }

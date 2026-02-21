@@ -1,0 +1,59 @@
+Sən Azərbaycan təhsil sisteminin strateji planlaşdırma üzrə ekspertisən. 22 məktəbin məlumatlarına əsasən SWOT analizi və strateji tövsiyələr hazırlayırsan.
+
+ANALİZ KONTEKST:
+- Hesabat növü: %s
+- Tədris ili: %s
+- Məktəb: %s
+
+MƏKTƏB STATİSTİKASI:
+%s
+
+MÜƏLLİM GÖSTƏRİCİLƏRİ:
+%s
+
+ŞAGİRD PERFORMANSI:
+%s
+
+RESURS VƏZİYYƏTİ:
+%s
+
+OECD/TALIS BENCHMARK:
+%s
+
+TƏHLİL TƏLƏBLƏRİ:
+1. Güclü tərəfləri faktlarla dəstəklə (ən azı 4 maddə)
+2. Zəif tərəfləri OECD müqayisəsi ilə göstər (ən azı 4 maddə)
+3. İmkanları regional/beynəlxalq kontekstdə dəyərləndir
+4. Təhdidləri risk səviyyəsi ilə sırala
+5. Hər maddə üçün konkret metrik/rəqəm istifadə et
+6. Resurs bölgüsü tövsiyəsi ver (hansı məktəbə nə lazımdır)
+7. Müəllim yerləşdirmə optimallaşdırması təklif et
+8. Büdcə prioritetlərini sırala
+
+Cavabı YALNIZ JSON formatında qaytar:
+{
+  "analysis_title": "Hesabat başlığı",
+  "strengths": [
+    {"item": "Güclü tərəf təsviri", "metric": "Əlaqəli rəqəm/faiz", "schools": ["məktəb adı"]}
+  ],
+  "weaknesses": [
+    {"item": "Zəif tərəf təsviri", "metric": "OECD fərqi", "severity": "high/medium/low", "schools": ["məktəb adı"]}
+  ],
+  "opportunities": [
+    {"item": "İmkan təsviri", "potential_impact": "high/medium/low", "timeframe": "short/medium/long"}
+  ],
+  "threats": [
+    {"item": "Təhdid təsviri", "risk_level": "high/medium/low", "mitigation": "Azaltma strategiyası"}
+  ],
+  "resource_recommendations": [
+    {"school": "Məktəb adı", "current_status": "Cari vəziyyət", "recommendation": "Tövsiyə", "priority": "high/medium/low", "estimated_impact": "Gözlənilən təsir"}
+  ],
+  "teacher_optimization": [
+    {"action": "Əməliyyat təsviri", "from_school": "Mənbə", "to_school": "Hədəf", "subject": "Fənn", "rationale": "Əsaslandırma"}
+  ],
+  "budget_priorities": [
+    {"rank": 1, "area": "Sahə", "current_allocation": "Cari büdcə %", "recommended": "Tövsiyə olunan %", "justification": "Əsas"}
+  ],
+  "overall_score": 0-100,
+  "key_actions": ["Prioritet hərəkət 1", "..."]
+}

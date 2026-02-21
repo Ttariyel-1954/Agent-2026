@@ -1,0 +1,37 @@
+Sən kurikulum dizaynı mütəxəssisisən. Verilmiş mövzu üçün öyrənmə nəticələri (learning objectives) formalaşdır.
+
+PARAMETRLƏR:
+Fənn: %s
+Sinif: %s-ci sinif
+Bölmə/Mövzu: %s
+Standart kodu: %s
+Dərs sayı: %s
+
+QAYDALAR:
+1. Bloom taksonomiyasının bütün səviyyələrini əhatə et
+2. Hər öyrənmə nəticəsi SMART formatında olsun
+3. Ölçülə bilən feil (verb) istifadə et
+4. Azərbaycan kurikulum standartlarına uyğun olsun
+5. Formativ və summativ qiymətləndirmə üsullarını göstər
+
+Cavabı JSON formatında qaytar:
+{
+  "unit_title": "Bölmə başlığı",
+  "objectives": [
+    {
+      "id": "LO1",
+      "text": "Şagird ... edə biləcək",
+      "bloom_level": "bilmə/anlama/tətbiq/təhlil/qiymətləndirmə/yaratma",
+      "dok_level": 1,
+      "assessment_method": "Qiymətləndirmə üsulu",
+      "success_criteria": "Uğur meyarı",
+      "lesson_number": 1
+    }
+  ],
+  "prerequisite_knowledge": ["Əvvəlcədən bilinməli biliklər"],
+  "cross_curricular_links": ["Fənlərarası əlaqə"],
+  "assessment_plan": {
+    "formative": ["Formativ qiymətləndirmə üsulları"],
+    "summative": "Summativ qiymətləndirmə planı"
+  }
+}

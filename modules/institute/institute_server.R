@@ -12,7 +12,7 @@ inst_structure_server <- function(id, db_pool, user_data) {
 
     load_units <- function() {
       tryCatch({
-        data <- dbGetQuery(db_pool, "
+        data <- safe_query(db_pool, "
           SELECT ou.*, p.name as parent_name
           FROM org_units ou
           LEFT JOIN org_units p ON ou.parent_id = p.id
@@ -109,7 +109,7 @@ inst_structure_server <- function(id, db_pool, user_data) {
       }
       tryCatch({
         parent_val <- if (nchar(input$new_unit_parent) == 0) NA else input$new_unit_parent
-        dbExecute(db_pool, "
+        safe_execute(db_pool, "
           INSERT INTO org_units (name, short_name, unit_type, parent_id, head_name, phone, email, description)
           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         ", params = list(
@@ -168,7 +168,7 @@ inst_structure_server <- function(id, db_pool, user_data) {
       }
       tryCatch({
         parent_val <- if (nchar(input$edit_unit_parent) == 0) NA else input$edit_unit_parent
-        dbExecute(db_pool, "
+        safe_execute(db_pool, "
           UPDATE org_units SET name=$1, short_name=$2, unit_type=$3, parent_id=$4,
             head_name=$5, phone=$6, email=$7, description=$8
           WHERE id=$9
@@ -217,9 +217,9 @@ inst_structure_server <- function(id, db_pool, user_data) {
       }
       row <- data[sel, ]
       tryCatch({
-        dbExecute(db_pool, "UPDATE org_units SET is_active = FALSE WHERE id = $1", params = list(row$id))
-        dbExecute(db_pool, "UPDATE unit_resources SET is_active = FALSE WHERE unit_id = $1", params = list(row$id))
-        dbExecute(db_pool, "UPDATE unit_personnel SET is_active = FALSE WHERE unit_id = $1", params = list(row$id))
+        safe_execute(db_pool, "UPDATE org_units SET is_active = FALSE WHERE id = $1", params = list(row$id))
+        safe_execute(db_pool, "UPDATE unit_resources SET is_active = FALSE WHERE unit_id = $1", params = list(row$id))
+        safe_execute(db_pool, "UPDATE unit_personnel SET is_active = FALSE WHERE unit_id = $1", params = list(row$id))
         removeModal()
         load_units()
         showNotification("Vahid uğurla silindi", type = "message")
@@ -256,7 +256,7 @@ inst_resources_server <- function(id, db_pool, user_data) {
 
     load_resources <- function() {
       tryCatch({
-        data <- dbGetQuery(db_pool, "
+        data <- safe_query(db_pool, "
           SELECT ur.*, ou.name as unit_name
           FROM unit_resources ur
           JOIN org_units ou ON ur.unit_id = ou.id
@@ -273,7 +273,7 @@ inst_resources_server <- function(id, db_pool, user_data) {
     observe({
       load_resources()
       units <- tryCatch(
-        dbGetQuery(db_pool, "SELECT id, name FROM org_units WHERE is_active = TRUE ORDER BY name"),
+        safe_query(db_pool, "SELECT id, name FROM org_units WHERE is_active = TRUE ORDER BY name"),
         error = function(e) data.frame(id = character(), name = character())
       )
       updateSelectInput(session, "res_unit_filter",
@@ -344,7 +344,7 @@ inst_resources_server <- function(id, db_pool, user_data) {
     # Yeni resurs
     observeEvent(input$add_resource_btn, {
       units <- tryCatch(
-        dbGetQuery(db_pool, "SELECT id, name FROM org_units WHERE is_active = TRUE ORDER BY name"),
+        safe_query(db_pool, "SELECT id, name FROM org_units WHERE is_active = TRUE ORDER BY name"),
         error = function(e) data.frame(id = character(), name = character())
       )
       showModal(modalDialog(
@@ -373,7 +373,7 @@ inst_resources_server <- function(id, db_pool, user_data) {
         return()
       }
       tryCatch({
-        dbExecute(db_pool, "
+        safe_execute(db_pool, "
           INSERT INTO unit_resources (unit_id, resource_type, name, description, quantity, budget_amount, condition)
           VALUES ($1, $2, $3, $4, $5, $6, $7)
         ", params = list(
@@ -399,7 +399,7 @@ inst_resources_server <- function(id, db_pool, user_data) {
       data <- filtered_resources()
       row <- data[sel, ]
       units <- tryCatch(
-        dbGetQuery(db_pool, "SELECT id, name FROM org_units WHERE is_active = TRUE ORDER BY name"),
+        safe_query(db_pool, "SELECT id, name FROM org_units WHERE is_active = TRUE ORDER BY name"),
         error = function(e) data.frame(id = character(), name = character())
       )
       showModal(modalDialog(
@@ -422,7 +422,7 @@ inst_resources_server <- function(id, db_pool, user_data) {
 
     observeEvent(input$update_resource_btn, {
       tryCatch({
-        dbExecute(db_pool, "
+        safe_execute(db_pool, "
           UPDATE unit_resources SET unit_id=$1, resource_type=$2, name=$3, description=$4,
             quantity=$5, budget_amount=$6, condition=$7
           WHERE id=$8
@@ -464,7 +464,7 @@ inst_resources_server <- function(id, db_pool, user_data) {
       data <- filtered_resources()
       row <- data[sel, ]
       tryCatch({
-        dbExecute(db_pool, "UPDATE unit_resources SET is_active = FALSE WHERE id = $1", params = list(row$id))
+        safe_execute(db_pool, "UPDATE unit_resources SET is_active = FALSE WHERE id = $1", params = list(row$id))
         removeModal()
         load_resources()
         showNotification("Resurs uğurla silindi", type = "message")
@@ -505,7 +505,7 @@ inst_contingent_server <- function(id, db_pool, user_data) {
 
     load_personnel <- function() {
       tryCatch({
-        data <- dbGetQuery(db_pool, "
+        data <- safe_query(db_pool, "
           SELECT up.*, ou.name as unit_name
           FROM unit_personnel up
           JOIN org_units ou ON up.unit_id = ou.id
@@ -522,7 +522,7 @@ inst_contingent_server <- function(id, db_pool, user_data) {
     observe({
       load_personnel()
       units <- tryCatch(
-        dbGetQuery(db_pool, "SELECT id, name FROM org_units WHERE is_active = TRUE ORDER BY name"),
+        safe_query(db_pool, "SELECT id, name FROM org_units WHERE is_active = TRUE ORDER BY name"),
         error = function(e) data.frame(id = character(), name = character())
       )
       updateSelectInput(session, "pers_unit_filter",
@@ -587,7 +587,7 @@ inst_contingent_server <- function(id, db_pool, user_data) {
     # Yeni personal
     observeEvent(input$add_personnel_btn, {
       units <- tryCatch(
-        dbGetQuery(db_pool, "SELECT id, name FROM org_units WHERE is_active = TRUE ORDER BY name"),
+        safe_query(db_pool, "SELECT id, name FROM org_units WHERE is_active = TRUE ORDER BY name"),
         error = function(e) data.frame(id = character(), name = character())
       )
       showModal(modalDialog(
@@ -617,7 +617,7 @@ inst_contingent_server <- function(id, db_pool, user_data) {
         return()
       }
       tryCatch({
-        dbExecute(db_pool, "
+        safe_execute(db_pool, "
           INSERT INTO unit_personnel (unit_id, full_name, position, personnel_type, employment_type,
                                        specialization, phone, email, hire_date)
           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
@@ -645,7 +645,7 @@ inst_contingent_server <- function(id, db_pool, user_data) {
       data <- filtered_personnel()
       row <- data[sel, ]
       units <- tryCatch(
-        dbGetQuery(db_pool, "SELECT id, name FROM org_units WHERE is_active = TRUE ORDER BY name"),
+        safe_query(db_pool, "SELECT id, name FROM org_units WHERE is_active = TRUE ORDER BY name"),
         error = function(e) data.frame(id = character(), name = character())
       )
       showModal(modalDialog(
@@ -669,7 +669,7 @@ inst_contingent_server <- function(id, db_pool, user_data) {
 
     observeEvent(input$update_personnel_btn, {
       tryCatch({
-        dbExecute(db_pool, "
+        safe_execute(db_pool, "
           UPDATE unit_personnel SET unit_id=$1, full_name=$2, position=$3, personnel_type=$4,
             employment_type=$5, specialization=$6, phone=$7, email=$8
           WHERE id=$9
@@ -711,7 +711,7 @@ inst_contingent_server <- function(id, db_pool, user_data) {
       data <- filtered_personnel()
       row <- data[sel, ]
       tryCatch({
-        dbExecute(db_pool, "UPDATE unit_personnel SET is_active = FALSE WHERE id = $1", params = list(row$id))
+        safe_execute(db_pool, "UPDATE unit_personnel SET is_active = FALSE WHERE id = $1", params = list(row$id))
         removeModal()
         load_personnel()
         showNotification("Personal uğurla silindi", type = "message")
@@ -754,7 +754,7 @@ inst_monitoring_server <- function(id, db_pool, user_data) {
 
     load_areas <- function() {
       tryCatch({
-        data <- dbGetQuery(db_pool, "
+        data <- safe_query(db_pool, "
           SELECT aa.*, ou.name as unit_name
           FROM activity_areas aa
           JOIN org_units ou ON aa.unit_id = ou.id
@@ -770,7 +770,7 @@ inst_monitoring_server <- function(id, db_pool, user_data) {
 
     load_kpis <- function() {
       tryCatch({
-        data <- dbGetQuery(db_pool, "
+        data <- safe_query(db_pool, "
           SELECT ak.*, aa.name as activity_name
           FROM activity_kpis ak
           JOIN activity_areas aa ON ak.activity_id = aa.id
@@ -786,7 +786,7 @@ inst_monitoring_server <- function(id, db_pool, user_data) {
 
     load_projects <- function() {
       tryCatch({
-        data <- dbGetQuery(db_pool, "
+        data <- safe_query(db_pool, "
           SELECT up.*, ou.name as unit_name
           FROM unit_projects up
           JOIN org_units ou ON up.unit_id = ou.id
@@ -802,7 +802,7 @@ inst_monitoring_server <- function(id, db_pool, user_data) {
 
     load_progress <- function() {
       tryCatch({
-        data <- dbGetQuery(db_pool, "
+        data <- safe_query(db_pool, "
           SELECT ap.*, ak.name as kpi_name, ak.target_value, ak.unit_measure
           FROM activity_progress ap
           JOIN activity_kpis ak ON ap.kpi_id = ak.id
@@ -822,7 +822,7 @@ inst_monitoring_server <- function(id, db_pool, user_data) {
       load_progress()
 
       units <- tryCatch(
-        dbGetQuery(db_pool, "SELECT id, name FROM org_units WHERE is_active = TRUE ORDER BY name"),
+        safe_query(db_pool, "SELECT id, name FROM org_units WHERE is_active = TRUE ORDER BY name"),
         error = function(e) data.frame(id = character(), name = character())
       )
       for (input_id in c("area_unit_filter", "proj_unit_filter")) {
@@ -960,7 +960,7 @@ inst_monitoring_server <- function(id, db_pool, user_data) {
     # Yeni sahə
     observeEvent(input$add_area_btn, {
       units <- tryCatch(
-        dbGetQuery(db_pool, "SELECT id, name FROM org_units WHERE is_active = TRUE ORDER BY name"),
+        safe_query(db_pool, "SELECT id, name FROM org_units WHERE is_active = TRUE ORDER BY name"),
         error = function(e) data.frame(id = character(), name = character()))
       showModal(modalDialog(
         title = "Yeni Fəaliyyət Sahəsi",
@@ -975,7 +975,7 @@ inst_monitoring_server <- function(id, db_pool, user_data) {
 
     observeEvent(input$save_area_btn, {
       tryCatch({
-        dbExecute(db_pool, "INSERT INTO activity_areas (unit_id, name, category, description, priority) VALUES ($1, $2, $3, $4, $5)",
+        safe_execute(db_pool, "INSERT INTO activity_areas (unit_id, name, category, description, priority) VALUES ($1, $2, $3, $4, $5)",
           params = list(input$new_area_unit, input$new_area_name, input$new_area_category, input$new_area_desc, input$new_area_priority))
         removeModal(); load_areas()
         showNotification("Fəaliyyət sahəsi uğurla əlavə edildi", type = "message")
@@ -997,7 +997,7 @@ inst_monitoring_server <- function(id, db_pool, user_data) {
       sel <- input$areas_table_rows_selected
       row <- areas_data()[sel, ]
       tryCatch({
-        dbExecute(db_pool, "UPDATE activity_areas SET is_active = FALSE WHERE id = $1", params = list(row$id))
+        safe_execute(db_pool, "UPDATE activity_areas SET is_active = FALSE WHERE id = $1", params = list(row$id))
         removeModal(); load_areas()
         showNotification("Sahə silindi", type = "message")
       }, error = function(e) { showNotification("Xəta baş verdi", type = "error") })
@@ -1025,7 +1025,7 @@ inst_monitoring_server <- function(id, db_pool, user_data) {
       validation <- validate_kpi_data(data)
       if (!validation$valid) { showNotification(paste(validation$errors, collapse = "\n"), type = "error"); return() }
       tryCatch({
-        dbExecute(db_pool, "INSERT INTO activity_kpis (activity_id, name, description, unit_measure, target_value, baseline_value, frequency) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+        safe_execute(db_pool, "INSERT INTO activity_kpis (activity_id, name, description, unit_measure, target_value, baseline_value, frequency) VALUES ($1, $2, $3, $4, $5, $6, $7)",
           params = list(input$new_kpi_activity, input$new_kpi_name, input$new_kpi_desc, input$new_kpi_unit, input$new_kpi_target, input$new_kpi_baseline, input$new_kpi_frequency))
         removeModal(); load_kpis()
         showNotification("KPI uğurla əlavə edildi", type = "message")
@@ -1049,7 +1049,7 @@ inst_monitoring_server <- function(id, db_pool, user_data) {
 
     observeEvent(input$save_progress_btn, {
       tryCatch({
-        dbExecute(db_pool, "INSERT INTO activity_progress (kpi_id, period_start, period_end, actual_value, notes) VALUES ($1, $2, $3, $4, $5)",
+        safe_execute(db_pool, "INSERT INTO activity_progress (kpi_id, period_start, period_end, actual_value, notes) VALUES ($1, $2, $3, $4, $5)",
           params = list(input$new_prog_kpi, as.character(input$new_prog_start), as.character(input$new_prog_end), input$new_prog_value, input$new_prog_notes))
         removeModal(); load_progress()
         showNotification("İrəliləyiş qeydi əlavə edildi", type = "message")
@@ -1059,7 +1059,7 @@ inst_monitoring_server <- function(id, db_pool, user_data) {
     # Yeni layihə
     observeEvent(input$add_project_btn, {
       units <- tryCatch(
-        dbGetQuery(db_pool, "SELECT id, name FROM org_units WHERE is_active = TRUE ORDER BY name"),
+        safe_query(db_pool, "SELECT id, name FROM org_units WHERE is_active = TRUE ORDER BY name"),
         error = function(e) data.frame(id = character(), name = character()))
       showModal(modalDialog(
         title = "Yeni Layihə",
@@ -1081,7 +1081,7 @@ inst_monitoring_server <- function(id, db_pool, user_data) {
       validation <- validate_project_data(data)
       if (!validation$valid) { showNotification(paste(validation$errors, collapse = "\n"), type = "error"); return() }
       tryCatch({
-        dbExecute(db_pool, "INSERT INTO unit_projects (unit_id, name, description, budget, priority, status, start_date, end_date, manager_name) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
+        safe_execute(db_pool, "INSERT INTO unit_projects (unit_id, name, description, budget, priority, status, start_date, end_date, manager_name) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
           params = list(input$new_proj_unit, input$new_proj_name, input$new_proj_desc, input$new_proj_budget,
             input$new_proj_priority, input$new_proj_status, as.character(input$new_proj_start), as.character(input$new_proj_end), input$new_proj_manager))
         removeModal(); load_projects()
@@ -1104,7 +1104,7 @@ inst_monitoring_server <- function(id, db_pool, user_data) {
       sel <- input$projects_table_rows_selected
       row <- projects_data()[sel, ]
       tryCatch({
-        dbExecute(db_pool, "UPDATE unit_projects SET is_active = FALSE WHERE id = $1", params = list(row$id))
+        safe_execute(db_pool, "UPDATE unit_projects SET is_active = FALSE WHERE id = $1", params = list(row$id))
         removeModal(); load_projects()
         showNotification("Layihə silindi", type = "message")
       }, error = function(e) { showNotification("Xəta baş verdi", type = "error") })

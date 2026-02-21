@@ -65,7 +65,7 @@ generate_student_report <- function(db_pool, student_id, semester = NULL, academ
 
   # Qiymətlər
   grades <- db_query(db_pool,
-    "SELECT sub.name, AVG(g.score * 100.0 / NULLIF(g.max_score, 0)) as avg_score
+    "SELECT sub.name, AVG(g.score) as avg_score
      FROM grades g JOIN subjects sub ON g.subject_id = sub.id
      WHERE g.student_id = $1 AND g.academic_year = $2
      GROUP BY sub.name ORDER BY avg_score DESC",
@@ -74,7 +74,7 @@ generate_student_report <- function(db_pool, student_id, semester = NULL, academ
   # Davamiyyət
   attendance <- db_query(db_pool,
     "SELECT status, COUNT(*) as count FROM attendance
-     WHERE student_id = $1 AND date >= $2
+     WHERE student_id = $1 AND attendance_date >= $2
      GROUP BY status",
     params = list(student_id, paste0(substr(academic_year, 1, 4), "-09-01")))
 
@@ -93,19 +93,19 @@ generate_student_report <- function(db_pool, student_id, semester = NULL, academ
 #' @return data.frame - Risk şagirdləri
 get_risk_students <- function(db_pool, threshold = 0.3) {
   query <- "SELECT s.id, s.first_name, s.last_name, c.grade, c.section,
-                   AVG(g.score * 100.0 / NULLIF(g.max_score, 0)) as avg_score,
+                   AVG(g.score) as avg_score,
                    (SELECT COUNT(*) FROM attendance a
                     WHERE a.student_id = s.id AND a.status = 'absent'
-                    AND a.date >= CURRENT_DATE - INTERVAL '30 days') as absences_30d
+                    AND a.attendance_date >= CURRENT_DATE - INTERVAL '30 days') as absences_30d
             FROM students s
             JOIN classes c ON s.class_id = c.id
             LEFT JOIN grades g ON g.student_id = s.id
             WHERE s.status = 'active'
             GROUP BY s.id, s.first_name, s.last_name, c.grade, c.section
-            HAVING AVG(g.score * 100.0 / NULLIF(g.max_score, 0)) < 51
+            HAVING AVG(g.score) < 51
                OR (SELECT COUNT(*) FROM attendance a
                    WHERE a.student_id = s.id AND a.status = 'absent'
-                   AND a.date >= CURRENT_DATE - INTERVAL '30 days') > 5
+                   AND a.attendance_date >= CURRENT_DATE - INTERVAL '30 days') > 5
             ORDER BY avg_score ASC"
   db_query(db_pool, query)
 }
@@ -134,4 +134,84 @@ format_attendance_data <- function(data) {
       ),
       date_formatted = format_date_az(date)
     )
+}
+
+# =============================================
+# AI Tutor Köməkçi Funksiyalar
+# =============================================
+
+#' Şagird kontekstini AI Tutor üçün topla
+#' @param db_pool DB pool
+#' @param student_id Şagird ID
+#' @param subject Cari fənn
+#' @param academic_year Tədris ili
+#' @return list - kontekst məlumatları
+build_tutor_context <- function(db_pool, student_id, subject, academic_year = NULL) {
+  if (is.null(academic_year)) academic_year <- get_academic_year()
+
+  # Şagird əsas məlumatları
+  student <- tryCatch(
+    db_get_one(db_pool,
+      "SELECT s.first_name, s.last_name, c.grade, c.section
+       FROM students s LEFT JOIN classes c ON s.class_id = c.id
+       WHERE s.id = $1",
+      params = list(student_id)),
+    error = function(e) list(first_name = "Şagird", last_name = "", grade = 8, section = "A")
+  )
+
+  name <- paste(student$first_name %||% "Şagird", student$last_name %||% "")
+  grade <- student$grade %||% 8
+
+  # Fənn üzrə qiymətlər — güclü/zəif tərəflər
+  grades <- tryCatch(
+    db_query(db_pool,
+      "SELECT sub.name as subject, ROUND(AVG(g.score)::numeric, 1) as avg_score
+       FROM grades g JOIN subjects sub ON g.subject_id = sub.id
+       WHERE g.student_id = $1 AND g.academic_year = $2
+       GROUP BY sub.name ORDER BY avg_score DESC",
+      params = list(student_id, academic_year)),
+    error = function(e) data.frame()
+  )
+
+  strengths <- ""
+  weaknesses <- ""
+  if (nrow(grades) > 0) {
+    strong <- grades[grades$avg_score >= 71, ]
+    weak <- grades[grades$avg_score < 51, ]
+    if (nrow(strong) > 0) strengths <- paste(sprintf("%s (%s)", strong$subject, strong$avg_score), collapse = ", ")
+    if (nrow(weak) > 0) weaknesses <- paste(sprintf("%s (%s)", weak$subject, weak$avg_score), collapse = ", ")
+  }
+
+  list(
+    name = trimws(name),
+    grade = grade,
+    section = student$section %||% "",
+    strengths = strengths,
+    weaknesses = weaknesses
+  )
+}
+
+#' Tutor cavabını markdown-dan HTML-ə çevir
+#' @param text Markdown mətni
+#' @return HTML mətni
+tutor_md_to_html <- function(text) {
+  if (is.null(text) || nchar(text) == 0) return("")
+  html <- text
+  # Kod bloku
+  html <- gsub("```([^`]+)```", "<pre style='background:#f5f5f5;padding:8px;border-radius:6px;font-size:0.9em;'>\\1</pre>", html)
+  html <- gsub("`([^`]+)`", "<code style='background:#f0f0f0;padding:1px 4px;border-radius:3px;'>\\1</code>", html)
+  # Başlıqlar
+  html <- gsub("### (.+)", "<h5 style='color:#2c3e50;margin:8px 0 4px;'>\\1</h5>", html)
+  html <- gsub("## (.+)", "<h4 style='color:#2c3e50;margin:8px 0 4px;'>\\1</h4>", html)
+  # Qalın + kursiv
+  html <- gsub("\\*\\*(.+?)\\*\\*", "<strong>\\1</strong>", html)
+  html <- gsub("\\*(.+?)\\*", "<em>\\1</em>", html)
+  # Nömrəli siyahı
+  html <- gsub("^(\\d+)\\. (.+)", "<div style='margin-left:12px;'><strong>\\1.</strong> \\2</div>", html)
+  # Siyahı
+  html <- gsub("^- (.+)", "<li style='margin-left:12px;'>\\1</li>", html)
+  # Abzas
+  html <- gsub("\n\n", "</p><p>", html)
+  html <- gsub("\n", "<br>", html)
+  html
 }

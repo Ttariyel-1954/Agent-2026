@@ -218,7 +218,7 @@ irt_analysis_server <- function(id, db_pool, user_data) {
     output$item_params_table <- renderDT({
       items <- items_data()
       if (nrow(items) == 0) return(datatable(data.frame()))
-      display <- items %>% select(id, irt_a, irt_b, irt_c, difficulty_label, bloom_level)
+      display <- items %>% select(id, irt_a, irt_b, irt_c, difficulty, bloom_level)
       names(display) <- c("ID", "Ayrıd etmə (a)", "Çətinlik (b)", "Təxmin (c)", "Çətinlik", "Bloom")
       datatable(display, options = default_dt_options())
     })

@@ -119,7 +119,7 @@ student_attendance_server <- function(id, db_pool, user_data) {
                 COALESCE(a.status, 'present') as status
          FROM students s
          JOIN classes c ON s.class_id = c.id
-         LEFT JOIN attendance a ON a.student_id = s.id AND a.date = $1
+         LEFT JOIN attendance a ON a.student_id = s.id AND a.attendance_date = $1
          WHERE c.grade = $2 AND c.section = $3
          ORDER BY s.last_name",
         params = list(input$att_date, grade_num, input$att_section))
@@ -140,8 +140,8 @@ student_attendance_server <- function(id, db_pool, user_data) {
       req(nrow(data) > 0)
       for (i in seq_len(nrow(data))) {
         db_execute(db_pool,
-          "INSERT INTO attendance (student_id, date, status) VALUES ($1, $2, $3)
-           ON CONFLICT (student_id, date) DO UPDATE SET status = $3",
+          "INSERT INTO attendance (student_id, attendance_date, status) VALUES ($1, $2, $3)
+           ON CONFLICT (student_id, attendance_date) DO UPDATE SET status = $3",
           params = list(data$id[i], input$att_date, data$status[i]))
       }
       notify_success("Davamiyyət yadda saxlandı!")

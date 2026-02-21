@@ -1,0 +1,81 @@
+Sən statistik analiz üzrə ekspertsen. Aşağıdakı tədqiqat üçün statistik analiz planı hazırla.
+
+TƏDQIQAT SUALI: %s
+
+TƏDQIQAT SAHƏSİ: %s
+
+METODOLOGİYA: %s
+
+DƏYİŞƏNLƏR: %s
+
+SEÇMƏ HƏCMİ: %s
+
+TAPŞIRIQ:
+1. Hipotezləri formalaşdır (H0 və H1)
+2. Dəyişənləri təsnif et (asılı, asılı olmayan, nəzarət)
+3. Hər hipotez üçün uyğun statistik testi seç
+4. Güc analizini (power analysis) hesabla
+5. Effekt ölçüsünü (effect size) müəyyən et
+6. Məlumatların normalluq yoxlamasını planlaşdır
+7. R/SPSS/Python üçün kod nümunələri ver
+
+QAYDA:
+- Səviyyəyə uyğun izahat ver (doktorant/tədqiqatçı)
+- Hər testin fərziyyələrini (assumptions) qeyd et
+- Alternativ testləri (non-parametrik) də təklif et
+- p-dəyəri, effekt ölçüsü, güvən intervalı kimi metrikləri izah et
+- R kodu nümunələri ver
+
+JSON FORMATI ilə cavab ver:
+{
+  "hypotheses": [
+    {
+      "id": "H1",
+      "null_hypothesis": "H0 ifadəsi",
+      "alternative_hypothesis": "H1 ifadəsi",
+      "type": "iki-tərəfli/bir-tərəfli"
+    }
+  ],
+  "variables": {
+    "dependent": [{"name": "ad", "type": "kəmiyyət/keyfiyyət", "scale": "interval/nisbət/ordinal/nominal"}],
+    "independent": [{"name": "ad", "type": "kəmiyyət/keyfiyyət", "scale": "interval/nisbət/ordinal/nominal"}],
+    "control": [{"name": "ad", "description": "təsvir"}],
+    "confounding": [{"name": "ad", "description": "təsvir"}]
+  },
+  "statistical_tests": [
+    {
+      "hypothesis_id": "H1",
+      "test_name": "Test adı",
+      "justification": "Niyə bu test",
+      "assumptions": ["fərziyyə1", ...],
+      "alternative_test": "Non-parametrik alternativ",
+      "effect_size_measure": "Effekt ölçüsü",
+      "significance_level": 0.05,
+      "r_code": "R kod nümunəsi"
+    }
+  ],
+  "power_analysis": {
+    "minimum_sample_size": 100,
+    "power": 0.80,
+    "alpha": 0.05,
+    "expected_effect_size": "orta",
+    "r_code": "pwr::pwr.t.test(...)"
+  },
+  "data_screening": {
+    "normality_tests": ["Shapiro-Wilk", "Kolmogorov-Smirnov"],
+    "outlier_detection": "IQR metodu / Mahalanobis uzaqlığı",
+    "missing_data_strategy": "Listwise deletion / Multiple imputation",
+    "multicollinearity_check": "VIF analizi"
+  },
+  "analysis_steps": [
+    {"step": 1, "action": "Təsviri statistika", "description": "Orta, standart sapma, tezlik"},
+    {"step": 2, "action": "Fərziyyələrin yoxlanması", "description": "Normalluq, homogenlik"},
+    {"step": 3, "action": "Əsas analiz", "description": "Hipotez testləri"},
+    {"step": 4, "action": "Əlavə analiz", "description": "Post-hoc, effekt ölçüsü"}
+  ],
+  "software_recommendations": {
+    "primary": "R",
+    "packages": ["stats", "car", "effectsize", "pwr", "ggplot2"],
+    "alternative": "SPSS / jamovi"
+  }
+}

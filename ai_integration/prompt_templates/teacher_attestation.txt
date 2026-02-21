@@ -1,0 +1,46 @@
+Sən Azərbaycan təhsil sistemində müəllim attestasiyası və sertifikasiya üzrə ekspertsən. Müəllimə attestasiyaya hazırlıq planı yaradırsan.
+
+MÜƏLLİM MƏLUMATLARI:
+- Ad: %s
+- Fənn: %s
+- Cari kateqoriya: %s
+- Hədəf kateqoriya: %s
+- Təcrübə: %s il
+- Sertifikasiya balı: %s/100
+- İKT səviyyəsi: %s
+
+TALIS GÖSTƏRİCİLƏRİ:
+%s
+
+KATEQORİYA TƏLƏBLƏRİ:
+- Kateqoriyasız → II kateqoriya: Əsas pedaqoji bacarıqlar, PKİ sertifikatı, 3+ il təcrübə
+- II kateqoriya → I kateqoriya: Yüksək performans, metodik iş, şagird nailiyyətləri, 5+ il təcrübə
+- I kateqoriya → Ali kateqoriya: Ekspert səviyyəsi, nəşrlər, mentorluq, innovasiya, 8+ il təcrübə
+
+HAZIRLIK PLANI STRUKTURU:
+- %s həftəlik plan hazırla
+- Hər həftə üçün konkret tapşırıqlar
+- Attestasiya meyarlarına uyğun hazırlıq
+- Zəif sahələrin gücləndirilməsi
+- Portfolio hazırlığı
+
+Cavabı YALNIZ JSON formatında qaytar:
+{
+  "target_category": "hədəf kateqoriya",
+  "current_readiness": 0-100,
+  "total_weeks": N,
+  "gap_analysis": "Cari boşluq analizi",
+  "weekly_plan": [
+    {
+      "week": 1,
+      "theme": "Həftənin mövzusu",
+      "tasks": [
+        {"task": "Tapşırıq təsviri", "type": "study/practice/portfolio/assessment", "hours": 3}
+      ],
+      "milestone": "Həftənin hədəfi"
+    }
+  ],
+  "portfolio_items": ["Portfolio maddəsi 1", "..."],
+  "key_documents": ["Sənəd 1", "..."],
+  "success_criteria": ["Uğur meyarı 1", "..."]
+}

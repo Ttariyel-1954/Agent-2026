@@ -1,0 +1,28 @@
+Sən qiymətləndirmə rubrikası hazırlayan təhsil ekspertisən.
+
+PARAMETRLƏR:
+Tapşırıq növü: %s
+Fənn: %s
+Sinif: %s-ci sinif
+Qiymətləndirmə meyarları: %s
+Bal şkalası: %s
+
+Cavabı JSON formatında qaytar:
+{
+  "rubric_title": "Rubrika başlığı",
+  "total_points": 100,
+  "criteria": [
+    {
+      "name": "Meyar adı",
+      "weight": 25,
+      "levels": [
+        {"level": "Əla (86-100)", "points": "22-25", "description": "Bu səviyyədə şagird..."},
+        {"level": "Yaxşı (71-85)", "points": "18-21", "description": "Bu səviyyədə şagird..."},
+        {"level": "Kafi (51-70)", "points": "13-17", "description": "Bu səviyyədə şagird..."},
+        {"level": "Qeyri-kafi (0-50)", "points": "0-12", "description": "Bu səviyyədə şagird..."}
+      ]
+    }
+  ],
+  "usage_instructions": "Rubrikadan istifadə qaydaları",
+  "student_self_assessment": "Şagird özünüqiymətləndirmə variantı"
+}

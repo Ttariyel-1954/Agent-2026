@@ -1,0 +1,69 @@
+Sən akademik yazı üzrə ekspertsen. Aşağıdakı tədqiqat üçün Nəticə bölməsinin qaralama versiyasını yaz.
+
+TƏDQIQAT SUALI: %s
+
+METODOLOGİYA: %s
+
+STATİSTİK ANALİZ PLANI: %s
+
+HİPOTETİK MƏLUMATLAR/KONTEKST: %s
+
+İSTİNAD FORMATI: %s
+
+TAPŞIRIQ:
+1. Nəticə bölməsini akademik üslubda yaz
+2. Təsviri statistikaları təqdim et
+3. Hər hipotez üçün statistik nəticələri bildir
+4. Cədvəl və qrafik təsvirlərini daxil et
+5. Effekt ölçülərini və güvən intervallarını qeyd et
+6. APA/Harvard formatına uyğun yaz
+7. Müzakirə bölməsi üçün əsas nöqtələri sadalat
+
+QAYDA:
+- Akademik Azərbaycan dilində yaz
+- APA 7-ci nəşrin statistik hesabat standartlarına əməl et
+- Nəticələri obyektiv şəkildə bildir (şəxsi şərh əlavə etmə)
+- Cədvəl nömrələrini ardıcıl ver
+- Statistik simvolları düzgün istifadə et (p, F, t, χ², d, η²)
+- Əhəmiyyətli və əhəmiyyətsiz nəticələri aydın fərqləndir
+
+JSON FORMATI ilə cavab ver:
+{
+  "results_section": {
+    "title": "Nəticələr",
+    "descriptive_stats": "Təsviri statistika paragrafı",
+    "main_findings": [
+      {
+        "hypothesis": "H1",
+        "result": "Statistik nəticə cümləsi",
+        "significant": true,
+        "stats_report": "t(98) = 2.45, p = .016, d = 0.49",
+        "interpretation": "Qısa şərh"
+      }
+    ],
+    "full_text": "Tam nəticə bölməsi mətni (akademik üslubda)",
+    "tables": [
+      {
+        "number": 1,
+        "title": "Cədvəl başlığı",
+        "description": "Cədvəl təsviri",
+        "suggested_columns": ["Dəyişən", "M", "SD", "n"]
+      }
+    ],
+    "figures": [
+      {
+        "number": 1,
+        "title": "Qrafik başlığı",
+        "type": "bar_chart/scatter/box_plot",
+        "description": "Qrafik təsviri",
+        "r_code": "ggplot kod nümunəsi"
+      }
+    ]
+  },
+  "discussion_points": [
+    "Müzakirə nöqtəsi 1",
+    "Müzakirə nöqtəsi 2"
+  ],
+  "limitations_from_results": ["Məhdudiyyət 1", ...],
+  "future_research_suggestions": ["Təklif 1", ...]
+}

@@ -65,6 +65,10 @@ source("modules/curriculum/alignment.R")
 source("modules/analytics/school_dashboard.R")
 source("modules/analytics/reports.R")
 source("modules/analytics/predictions.R")
+source("modules/analytics/ml_models.R")
+source("modules/analytics/risk_dashboard.R")
+source("modules/analytics/notifications.R")
+source("modules/analytics/report_generator.R")
 
 # Sertifikasiya modulu
 source("modules/certification/certification_helpers.R")
@@ -105,6 +109,43 @@ source("modules/ocr/ocr_server.R")
 source("ai_integration/claude_api.R")
 source("ai_integration/gpt_api.R")
 source("ai_integration/response_parser.R")
+source("ai_integration/translation_api.R")
+source("ai_integration/teacher_mentor_api.R")
+source("ai_integration/strategy_api.R")
+source("ai_integration/parent_communication_api.R")
+source("ai_integration/research_assistant_api.R")
+source("ai_integration/ai_router.R")
+
+# AI Alətləri modulu
+source("modules/ai_tools/ai_tools_helpers.R")
+source("modules/ai_tools/ai_tools_ui.R")
+source("modules/ai_tools/ai_tools_server.R")
+source("modules/ai_tools/analytics_chat.R")
+source("modules/ai_tools/ai_tutor.R")
+
+# Tərcümə modulu
+source("modules/curriculum/translation.R")
+
+# Strategiya modulu
+source("modules/strategy/strategy_helpers.R")
+source("modules/strategy/strategy_ui.R")
+source("modules/strategy/strategy_server.R")
+
+# Valideyn Əlaqə modulu
+source("modules/parent/parent_helpers.R")
+source("modules/parent/parent_ui.R")
+source("modules/parent/parent_server.R")
+
+# Admin modulu
+source("modules/admin/admin_helpers.R")
+source("modules/admin/admin_ui.R")
+source("modules/admin/admin_server.R")
+source("modules/admin/data_import.R")
+
+# Təqvim modulu
+source("modules/calendar/calendar_helpers.R")
+source("modules/calendar/calendar_ui.R")
+source("modules/calendar/calendar_server.R")
 
 # === Logger konfiqurasiyası ===
 log_appender(appender_console)
@@ -200,7 +241,8 @@ ui <- dashboardPage(
         icon = icon("book"),
         menuSubItem("Standartlar", tabName = "standards"),
         menuSubItem("Beynəlxalq Müqayisə", tabName = "comparison"),
-        menuSubItem("Uyğunluq Analizi", tabName = "alignment")
+        menuSubItem("Uyğunluq Analizi", tabName = "alignment"),
+        menuSubItem("Tərcümə", tabName = "translation")
       ),
 
       # Analitika
@@ -209,7 +251,11 @@ ui <- dashboardPage(
         icon = icon("chart-line"),
         menuSubItem("Məktəb Dashboard", tabName = "school_dashboard"),
         menuSubItem("Hesabatlar", tabName = "reports"),
-        menuSubItem("Prediktiv Analitika", tabName = "predictions")
+        menuSubItem("Prediktiv Analitika", tabName = "predictions"),
+        menuSubItem("ML Modellər", tabName = "ml_models"),
+        menuSubItem("Risk Dashboard", tabName = "risk_dashboard"),
+        menuSubItem("Bildirişlər", tabName = "notifications"),
+        menuSubItem("Hesabat Generatoru", tabName = "report_generator")
       ),
 
       # Sertifikasiya
@@ -237,7 +283,8 @@ ui <- dashboardPage(
         icon = icon("flask"),
         menuSubItem("Tədqiqatlar", tabName = "research_projects"),
         menuSubItem("Siyasət Analizi", tabName = "research_policy"),
-        menuSubItem("Doktorantura", tabName = "research_doctoral")
+        menuSubItem("Doktorantura", tabName = "research_doctoral"),
+        menuSubItem("AI Asistent", tabName = "research_ai_assistant")
       ),
 
       # DÜZƏLDİLMİŞ:
@@ -272,21 +319,47 @@ ui <- dashboardPage(
       menuItem(
         "OCR Tanıma",
         icon = icon("camera"),
-        badgeLabel = "YENİ",
-        badgeColor = "green",
         menuSubItem("Cavab Vərəqəsi", tabName = "ocr_answer_sheet"),
         menuSubItem("Şagird Sənədi", tabName = "ocr_student_doc"),
         menuSubItem("Sertifikat", tabName = "ocr_certificate"),
         menuSubItem("Tarixçə", tabName = "ocr_history")
       ),
 
-      # AI Köməkçi
+      # Valideyn Əlaqə
       menuItem(
-        "AI Köməkçi",
-        tabName = "ai_assistant",
+        "Valideyn Əlaqə",
+        icon = icon("envelope"),
+        menuSubItem("Fərdi Məktub", tabName = "parent_letter"),
+        menuSubItem("Toplu Göndərmə", tabName = "parent_batch"),
+        menuSubItem("Tarixçə", tabName = "parent_history")
+      ),
+
+      # Strategiya
+      menuItem(
+        "Strategiya",
+        icon = icon("chess-king"),
+        menuSubItem("SWOT Analiz", tabName = "strategy_swot"),
+        menuSubItem("Resurs Bölgüsü", tabName = "strategy_resources"),
+        menuSubItem("What-If Scenari", tabName = "strategy_whatif"),
+        menuSubItem("Benchmark", tabName = "strategy_benchmark")
+      ),
+
+      # AI Alətləri
+      menuItem(
+        "AI Alətləri",
         icon = icon("robot"),
-        badgeLabel = "YENİ",
-        badgeColor = "green"
+        menuSubItem("Sual Generatoru", tabName = "question_generator"),
+        menuSubItem("Dərs Planı", tabName = "lesson_plan_generator"),
+        menuSubItem("Analitik Söhbət", tabName = "analytics_chat"),
+        menuSubItem("AI Repetitor", tabName = "ai_tutor"),
+        menuSubItem("AI Köməkçi", tabName = "ai_assistant")
+      ),
+
+      # Təqvim
+      menuItem(
+        "Təqvim",
+        tabName = "calendar",
+        icon = icon("calendar")
       ),
 
       # İdarəetmə
@@ -295,7 +368,8 @@ ui <- dashboardPage(
         icon = icon("cog"),
         menuSubItem("İstifadəçilər", tabName = "admin_users"),
         menuSubItem("Parametrlər", tabName = "admin_settings"),
-        menuSubItem("Loglar", tabName = "admin_logs")
+        menuSubItem("Loglar", tabName = "admin_logs"),
+        menuSubItem("Data İmport", tabName = "data_import")
       )
     ),
 
@@ -413,11 +487,16 @@ ui <- dashboardPage(
       tabItem(tabName = "standards", standards_ui("standards")),
       tabItem(tabName = "comparison", comparison_ui("comparison")),
       tabItem(tabName = "alignment", alignment_ui("alignment")),
+      tabItem(tabName = "translation", translation_ui("translation")),
 
       # Analitika tabları
       tabItem(tabName = "school_dashboard", school_dashboard_ui("school_dashboard")),
       tabItem(tabName = "reports", reports_ui("reports")),
       tabItem(tabName = "predictions", predictions_ui("predictions")),
+      tabItem(tabName = "ml_models", ml_models_ui("ml_models")),
+      tabItem(tabName = "risk_dashboard", risk_dashboard_ui("risk_dashboard")),
+      tabItem(tabName = "notifications", notifications_ui("notifications")),
+      tabItem(tabName = "report_generator", report_generator_ui("report_generator")),
 
       # Sertifikasiya tabları
       tabItem(tabName = "cert_recruitment", cert_recruitment_ui("cert_recruitment")),
@@ -434,6 +513,7 @@ ui <- dashboardPage(
       tabItem(tabName = "research_projects", research_projects_ui("research_projects")),
       tabItem(tabName = "research_policy", research_policy_ui("research_policy")),
       tabItem(tabName = "research_doctoral", research_doctoral_ui("research_doctoral")),
+      tabItem(tabName = "research_ai_assistant", research_ai_assistant_ui("research_ai_assistant")),
 
       # Peşəkar İnkişaf tabları
       tabItem(tabName = "dev_training", dev_training_ui("dev_training")),
@@ -456,6 +536,23 @@ ui <- dashboardPage(
       tabItem(tabName = "ocr_student_doc", ocr_student_doc_ui("ocr_student_doc")),
       tabItem(tabName = "ocr_certificate", ocr_certificate_ui("ocr_certificate")),
       tabItem(tabName = "ocr_history", ocr_history_ui("ocr_history")),
+
+      # Valideyn Əlaqə tabları
+      tabItem(tabName = "parent_letter", parent_letter_ui("parent_letter")),
+      tabItem(tabName = "parent_batch", parent_batch_ui("parent_batch")),
+      tabItem(tabName = "parent_history", parent_history_ui("parent_history")),
+
+      # Strategiya tabları
+      tabItem(tabName = "strategy_swot", strategy_swot_ui("strategy_swot")),
+      tabItem(tabName = "strategy_resources", strategy_resources_ui("strategy_resources")),
+      tabItem(tabName = "strategy_whatif", strategy_whatif_ui("strategy_whatif")),
+      tabItem(tabName = "strategy_benchmark", strategy_benchmark_ui("strategy_benchmark")),
+
+      # AI Alətləri tabları
+      tabItem(tabName = "question_generator", question_generator_ui("question_generator")),
+      tabItem(tabName = "lesson_plan_generator", lesson_plan_ui("lesson_plan_generator")),
+      tabItem(tabName = "analytics_chat", analytics_chat_ui("analytics_chat")),
+      tabItem(tabName = "ai_tutor", ai_tutor_ui("ai_tutor")),
 
       # AI Köməkçi
       tabItem(
@@ -500,47 +597,14 @@ ui <- dashboardPage(
         )
       ),
 
-      # Admin tabları
-      tabItem(
-        tabName = "admin_users",
-        fluidRow(
-          box(
-            title = "İstifadəçi İdarəetməsi",
-            status = "danger",
-            solidHeader = TRUE,
-            width = 12,
-            DTOutput("admin_users_table"),
-            tags$hr(),
-            actionButton("add_user_btn", "Yeni İstifadəçi", icon = icon("plus"), class = "btn-primary")
-          )
-        )
-      ),
+      # Təqvim
+      tabItem(tabName = "calendar", calendar_ui("calendar")),
 
-      tabItem(
-        tabName = "admin_settings",
-        fluidRow(
-          box(
-            title = "Sistem Parametrləri",
-            status = "danger",
-            solidHeader = TRUE,
-            width = 12,
-            uiOutput("system_settings_ui")
-          )
-        )
-      ),
-
-      tabItem(
-        tabName = "admin_logs",
-        fluidRow(
-          box(
-            title = "Sistem Logları",
-            status = "danger",
-            solidHeader = TRUE,
-            width = 12,
-            DTOutput("system_logs_table")
-          )
-        )
-      )
+      # Admin tabları (modularized)
+      tabItem(tabName = "admin_users", admin_users_ui("admin_users")),
+      tabItem(tabName = "admin_settings", admin_settings_ui("admin_settings")),
+      tabItem(tabName = "admin_logs", admin_logs_ui("admin_logs")),
+      tabItem(tabName = "data_import", data_import_ui("data_import"))
     )
   ),
 
@@ -568,12 +632,14 @@ server <- function(input, output, session) {
 
   # Tətbiq bağlandıqda pool-u bağla
   onStop(function() {
-    poolClose(db_pool)
-    log_info("Verilənlər bazası bağlantısı bağlandı")
+    if (!is.null(db_pool)) {
+      if (!is.null(db_pool)) poolClose(db_pool)
+      log_info("Verilənlər bazası bağlantısı bağlandı")
+    }
   })
 
   # === Autentifikasiya ===
-  user_data <- reactiveVal(list(id = "guest", sub = "guest", role = "admin",
+  user_data <- reactiveVal(list(id = NULL, sub = NULL, role = "admin",
                                 full_name = "Qonaq", username = "guest",
                                 school_id = NULL, avatar = NULL))
 
@@ -611,7 +677,7 @@ server <- function(input, output, session) {
   output$total_students_box <- renderValueBox({
     count <- get_total_count(db_pool, "students")
     valueBox(
-      value = format(count, big.mark = "."),
+      value = format(count, big.mark = ","),
       subtitle = "Ümumi Şagird",
       icon = icon("user-graduate"),
       color = "aqua"
@@ -621,7 +687,7 @@ server <- function(input, output, session) {
   output$total_teachers_box <- renderValueBox({
     count <- get_total_count(db_pool, "teachers")
     valueBox(
-      value = format(count, big.mark = "."),
+      value = format(count, big.mark = ","),
       subtitle = "Ümumi Müəllim",
       icon = icon("chalkboard-teacher"),
       color = "green"
@@ -745,11 +811,16 @@ server <- function(input, output, session) {
   standards_server("standards", db_pool, user_data)
   comparison_server("comparison", db_pool, user_data)
   alignment_server("alignment", db_pool, user_data)
+  translation_server("translation", db_pool, user_data)
 
   # Analitika modulları
   school_dashboard_server("school_dashboard", db_pool, user_data)
   reports_server("reports", db_pool, user_data)
   predictions_server("predictions", db_pool, user_data)
+  ml_models_server("ml_models", db_pool, user_data)
+  risk_dashboard_server("risk_dashboard", db_pool, user_data)
+  notifications_server("notifications", db_pool, user_data)
+  report_generator_server("report_generator", db_pool, user_data)
 
   # Sertifikasiya modulları
   cert_recruitment_server("cert_recruitment", db_pool, user_data)
@@ -766,6 +837,7 @@ server <- function(input, output, session) {
   research_projects_server("research_projects", db_pool, user_data)
   research_policy_server("research_policy", db_pool, user_data)
   research_doctoral_server("research_doctoral", db_pool, user_data)
+  research_ai_assistant_server("research_ai_assistant", db_pool, user_data)
 
   # Peşəkar İnkişaf modulları
   dev_training_server("dev_training", db_pool, user_data)
@@ -783,11 +855,28 @@ server <- function(input, output, session) {
   inst_contingent_server("inst_contingent", db_pool, user_data)
   inst_monitoring_server("inst_monitoring", db_pool, user_data)
 
+  # === Valideyn Əlaqə modulları ===
+  parent_letter_server("parent_letter", db_pool, user_data)
+  parent_batch_server("parent_batch", db_pool, user_data)
+  parent_history_server("parent_history", db_pool, user_data)
+
+  # === Strategiya modulları ===
+  strategy_swot_server("strategy_swot", db_pool, user_data)
+  strategy_resources_server("strategy_resources", db_pool, user_data)
+  strategy_whatif_server("strategy_whatif", db_pool, user_data)
+  strategy_benchmark_server("strategy_benchmark", db_pool, user_data)
+
   # === OCR modulları ===
   ocr_answer_sheet_server("ocr_answer_sheet", db_pool, user_data)
   ocr_student_doc_server("ocr_student_doc", db_pool, user_data)
   ocr_certificate_server("ocr_certificate", db_pool, user_data)
   ocr_history_server("ocr_history", db_pool, user_data)
+
+  # === AI Alətləri modulları ===
+  question_generator_server("question_generator", db_pool, user_data)
+  lesson_plan_server("lesson_plan_generator", db_pool, user_data)
+  analytics_chat_server("analytics_chat", db_pool, user_data)
+  ai_tutor_server("ai_tutor", db_pool, user_data)
 
   # === AI Köməkçi ===
   ai_result <- reactiveVal(NULL)
@@ -797,18 +886,31 @@ server <- function(input, output, session) {
 
     showNotification("AI cavab hazırlayır...", type = "message", duration = NULL, id = "ai_loading")
 
+    # Tapşırıq növünə görə sistem promptu
+    system_prompts <- list(
+      question_gen = "Sən təhsil sahəsində sual yazan AI köməkçisisən. Azərbaycan dilində cavab ver.",
+      curriculum_analysis = "Sən kurikulum analizi üzrə ekspertsən. Azərbaycan dilində cavab ver.",
+      student_feedback = "Sən şagirdlərə geri bildiriş yazan müəllimsən. Azərbaycan dilində cavab ver.",
+      lesson_plan = "Sən dərs planı hazırlayan təcrübəli müəllimsən. Azərbaycan dilində cavab ver.",
+      report_summary = "Sən hesabat xülasəsi hazırlayan analitik ekspertsən. Azərbaycan dilində cavab ver."
+    )
+    sys_prompt <- system_prompts[[input$ai_task_type]] %||% "Sən təhsil sahəsində AI köməkçisisən. Azərbaycan dilində cavab ver."
+
+    uid <- tryCatch(user_data()$id, error = function(e) NULL)
+
     result <- tryCatch({
       if (input$ai_provider == "claude") {
         call_claude_api(
+          prompt = input$ai_input,
+          system_prompt = sys_prompt,
           task_type = input$ai_task_type,
-          user_input = input$ai_input,
-          config = app_config$ai
+          db_pool = db_pool,
+          user_id = uid
         )
       } else {
         call_gpt_api(
-          task_type = input$ai_task_type,
-          user_input = input$ai_input,
-          config = app_config$ai
+          prompt = input$ai_input,
+          system_prompt = sys_prompt
         )
       }
     }, error = function(e) {
@@ -825,7 +927,7 @@ server <- function(input, output, session) {
     if (is.null(result)) {
       tags$p(class = "text-muted", "Nəticə burada görünəcək...")
     } else if (isFALSE(result$success)) {
-      tags$div(class = "alert alert-danger", icon("exclamation-triangle"), result$error)
+      tags$div(class = "alert alert-danger", icon("exclamation-triangle"), result$error %||% result$message %||% "Naməlum xəta")
     } else {
       tags$div(
         class = "ai-result-container",
@@ -846,6 +948,15 @@ server <- function(input, output, session) {
       }
     }
   )
+
+  # === Admin modulları ===
+  admin_users_server("admin_users", db_pool, user_data)
+  admin_settings_server("admin_settings", db_pool, user_data)
+  admin_logs_server("admin_logs", db_pool, user_data)
+  data_import_server("data_import", db_pool, user_data)
+
+  # === Təqvim modulu ===
+  calendar_server("calendar", db_pool, user_data)
 
   # === Yükləmə ekranını gizlə ===
   session$onFlushed(function() {

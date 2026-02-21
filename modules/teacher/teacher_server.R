@@ -244,5 +244,474 @@ teacher_performance_server <- function(id, db_pool, user_data) {
                       input$eval_parent, input$eval_innovation, overall, input$eval_notes))
       notify_success("Qiymətləndirmə yadda saxlandı!")
     })
+
+    # =============================================
+    # AI MENTOR SİSTEMİ
+    # =============================================
+    mentor_result <- reactiveVal(NULL)
+    att_plan_result <- reactiveVal(NULL)
+
+    # --- Zəif Sahələr UI ---
+    output$weak_areas_ui <- renderUI({
+      req(input$selected_teacher)
+      talis <- get_teacher_talis_profile(db_pool, input$selected_teacher)
+      if (is.null(talis)) {
+        return(tags$div(style = "text-align:center; color:#999; padding:20px;",
+          icon("info-circle"), tags$p("Bu müəllim üçün TALIS məlumatı tapılmadı")))
+      }
+
+      weak <- detect_weak_areas(talis)
+      if (nrow(weak) == 0) {
+        return(tags$div(style = "text-align:center; color:#27ae60; padding:20px;",
+          icon("check-circle", style = "font-size:2em;"), tags$br(),
+          tags$p(tags$strong("Bütün sahələrdə OECD standartlarına çatılıb!"))))
+      }
+
+      items <- lapply(seq_len(nrow(weak)), function(i) {
+        w <- weak[i, ]
+        bar_color <- switch(w$priority, high = "#e74c3c", medium = "#f39c12", "#3498db")
+        pct <- if (w$label == "Şagird keçid faizi") {
+          min(100, max(0, w$score))
+        } else {
+          min(100, max(0, w$score / 10 * 100))
+        }
+        oecd_pct <- if (w$label == "Şagird keçid faizi") w$oecd else w$oecd / 10 * 100
+
+        tags$div(style = "margin-bottom:8px;",
+          tags$div(style = "display:flex; justify-content:space-between; font-size:0.85em;",
+            tags$span(w$label),
+            tags$span(style = paste0("color:", bar_color, "; font-weight:bold;"),
+              paste0(w$score, " / ", w$oecd))
+          ),
+          tags$div(style = "background:#ecf0f1; border-radius:4px; height:8px; position:relative;",
+            tags$div(style = paste0("background:", bar_color, "; width:", pct, "%;
+                                     height:100%; border-radius:4px;")),
+            tags$div(style = paste0("position:absolute; left:", oecd_pct, "%; top:-2px;
+                                     width:2px; height:12px; background:#2c3e50;"))
+          )
+        )
+      })
+
+      tags$div(
+        tags$div(style = "margin-bottom:10px;",
+          tags$span(class = "label label-danger", paste(sum(weak$priority == "high"), "yüksək")),
+          tags$span(class = "label label-warning", style = "margin-left:4px;",
+            paste(sum(weak$priority == "medium"), "orta")),
+          tags$span(class = "label label-info", style = "margin-left:4px;",
+            paste(sum(weak$priority == "low"), "aşağı"))
+        ),
+        items,
+        tags$small(class = "text-muted", "Qara xətt = OECD ortalaması")
+      )
+    })
+
+    # --- Həftəlik Tövsiyə Generasiya ---
+    observeEvent(input$btn_generate_mentor, {
+      req(input$selected_teacher)
+
+      withProgress(message = "AI Mentor tövsiyə hazırlayır...", value = 0.3, {
+        result <- tryCatch(
+          generate_mentor_recommendations(input$selected_teacher, db_pool, user_data()$id),
+          error = function(e) list(success = FALSE, message = e$message)
+        )
+        setProgress(value = 1)
+      })
+
+      mentor_result(result)
+
+      if (result$success) {
+        notify_success("Həftəlik tövsiyələr hazırlandı!")
+      } else {
+        notify_error(paste("Mentor xətası:", result$message))
+      }
+    })
+
+    # --- Həftəlik Fokus ---
+    output$mentor_focus_ui <- renderUI({
+      result <- mentor_result()
+      if (is.null(result) || !result$success) return(NULL)
+
+      tags$div(
+        if (!is_empty(result$weekly_focus))
+          tags$div(style = "background:#e8f4fd; padding:10px; border-radius:6px; margin-bottom:10px;",
+            tags$strong(icon("bullseye"), " Bu həftənin fokus sahəsi: "),
+            result$weekly_focus),
+        if (!is_empty(result$motivation_note))
+          tags$div(style = "background:#e8f5e9; padding:10px; border-radius:6px;",
+            tags$em(icon("heart"), " ", result$motivation_note))
+      )
+    })
+
+    # --- Tövsiyələr UI ---
+    output$mentor_recommendations_ui <- renderUI({
+      result <- mentor_result()
+      if (is.null(result)) {
+        return(tags$div(style = "text-align:center; color:#999; padding:40px;",
+          icon("robot", style = "font-size:2.5em;"), tags$br(), tags$br(),
+          tags$p("'Həftəlik Tövsiyə Al' düyməsini basın")))
+      }
+      if (!result$success) {
+        return(tags$div(class = "alert alert-danger", icon("exclamation-triangle"), " ", result$message))
+      }
+
+      recs <- result$recommendations
+      if (is.null(recs) || length(recs) == 0) {
+        return(tags$div(class = "alert alert-success", icon("check"), " Tövsiyə yoxdur — əla nəticə!"))
+      }
+
+      # data.frame və ya list ola bilər
+      if (is.data.frame(recs)) {
+        rec_items <- lapply(seq_len(nrow(recs)), function(i) {
+          render_recommendation_card(recs[i, ], ns)
+        })
+      } else {
+        rec_items <- lapply(recs, function(rec) {
+          render_recommendation_card(rec, ns)
+        })
+      }
+
+      tags$div(style = "max-height:500px; overflow-y:auto;", rec_items)
+    })
+
+    # --- Resurslar Cədvəli ---
+    output$mentor_resources_table <- renderDT({
+      req(input$selected_teacher)
+      data <- get_mentor_resources(input$selected_teacher, db_pool)
+      if (nrow(data) == 0) {
+        return(datatable(data.frame("Resurs" = "Tövsiyə generasiya edin"),
+          options = list(dom = "t")))
+      }
+      display <- data %>%
+        select(resource_type, title, source, estimated_minutes, is_viewed, weak_area)
+      names(display) <- c("Növ", "Başlıq", "Mənbə", "Dəqiqə", "Baxılıb", "Sahə")
+      display$Baxılıb <- ifelse(display$Baxılıb, "Bəli", "Xeyr")
+
+      type_icons <- c(video = "Video", article = "Məqalə", course = "Kurs",
+                       book = "Kitab", webinar = "Vebinar", tool = "Alət")
+      display$Növ <- type_icons[display$Növ] %||% display$Növ
+
+      datatable(display, selection = "single", options = list(pageLength = 5, dom = "tp",
+        language = list(emptyTable = "Resurs tapılmadı")))
+    })
+
+    # Resursu baxıldı işarələ
+    observeEvent(input$btn_mark_resource_viewed, {
+      req(input$selected_teacher)
+      sel <- input$mentor_resources_table_rows_selected
+      if (is.null(sel) || length(sel) == 0) {
+        notify_warning("Resurs seçin")
+        return()
+      }
+      data <- get_mentor_resources(input$selected_teacher, db_pool)
+      if (sel > nrow(data)) return()
+      rating <- if (!is_empty(input$resource_rating)) as.integer(input$resource_rating) else NULL
+      mark_resource_viewed(data[sel, "id"], rating, db_pool)
+      notify_success("Resurs baxıldı olaraq işarələndi")
+    })
+
+    # --- Tövsiyə Tarixçəsi ---
+    output$mentor_history_table <- renderDT({
+      req(input$selected_teacher)
+      input$btn_mark_completed
+      input$btn_generate_mentor
+
+      data <- get_mentor_history(input$selected_teacher, db_pool)
+      if (nrow(data) == 0) {
+        return(datatable(data.frame("Tarixçə" = "Hələ tövsiyə yoxdur"),
+          options = list(dom = "t")))
+      }
+      display <- data %>%
+        select(week_start, weak_area, priority, recommendation_text, is_completed, feedback_rating)
+      names(display) <- c("Həftə", "Sahə", "Prioritet", "Tövsiyə", "Tamamlandı", "Reytinq")
+      display$Tamamlandı <- ifelse(display$Tamamlandı, "Bəli", "Xeyr")
+      display$Tövsiyə <- substr(display$Tövsiyə, 1, 80)
+
+      datatable(display, selection = "single", options = list(pageLength = 10, dom = "tp",
+        language = list(emptyTable = "Tarixçə boşdur")))
+    })
+
+    # Tövsiyəni tamamlandı işarələ
+    observeEvent(input$btn_mark_completed, {
+      req(input$selected_teacher)
+      sel <- input$mentor_history_table_rows_selected
+      if (is.null(sel) || length(sel) == 0) {
+        notify_warning("Tövsiyə seçin")
+        return()
+      }
+      data <- get_mentor_history(input$selected_teacher, db_pool)
+      if (sel > nrow(data)) return()
+      feedback <- input$rec_feedback %||% ""
+      rating <- if (!is_empty(input$rec_rating)) as.integer(input$rec_rating) else NULL
+      mark_recommendation_completed(data[sel, "id"], feedback, rating, db_pool)
+      notify_success("Tövsiyə tamamlandı olaraq işarələndi")
+    })
+
+    # =============================================
+    # İRƏLİLƏYİŞ İZLƏMƏ
+    # =============================================
+    output$progress_table <- renderDT({
+      req(input$selected_teacher)
+      progress <- track_teacher_progress(input$selected_teacher, db_pool)
+      if (nrow(progress) == 0) {
+        return(datatable(data.frame("Məlumat" = "TALIS göstəriciləri tapılmadı"),
+          options = list(dom = "t")))
+      }
+      display <- progress %>%
+        select(label, previous, current, target, change_pct)
+      names(display) <- c("Sahə", "Əvvəlki", "Cari", "Hədəf (OECD)", "Dəyişim %")
+
+      datatable(display, selection = "none", options = list(dom = "t", pageLength = 10)) %>%
+        formatStyle("Dəyişim %",
+          color = styleInterval(c(-0.1, 0.1), c("#e74c3c", "#f39c12", "#27ae60")),
+          fontWeight = "bold")
+    })
+
+    output$progress_chart <- renderPlotly({
+      req(input$selected_teacher)
+      progress <- track_teacher_progress(input$selected_teacher, db_pool)
+      if (nrow(progress) == 0) {
+        return(plot_ly() %>% layout(title = "TALIS məlumatı yoxdur",
+          xaxis = list(visible = FALSE), yaxis = list(visible = FALSE)))
+      }
+
+      plot_ly(data = progress) %>%
+        add_trace(x = ~label, y = ~current, type = "bar", name = "Cari",
+                  marker = list(color = "#3498db")) %>%
+        add_trace(x = ~label, y = ~target, type = "scatter", mode = "markers+lines",
+                  name = "OECD Hədəf", marker = list(color = "#e74c3c", size = 10),
+                  line = list(color = "#e74c3c", dash = "dash")) %>%
+        add_trace(x = ~label, y = ~previous, type = "bar", name = "Əvvəlki",
+                  marker = list(color = "#bdc3c7"), visible = "legendonly") %>%
+        layout(
+          xaxis = list(title = "", tickangle = -30),
+          yaxis = list(title = "Bal"),
+          barmode = "group",
+          legend = list(orientation = "h", y = -0.2)
+        )
+    })
+
+    # =============================================
+    # ATTESTASİYA HAZIRLIK PLANI
+    # =============================================
+
+    # Plan generasiya et
+    observeEvent(input$btn_generate_att_plan, {
+      req(input$selected_teacher, input$att_target)
+
+      if (is_empty(input$att_target)) {
+        notify_warning("Hədəf kateqoriya seçin")
+        return()
+      }
+
+      withProgress(message = "Attestasiya planı yaradılır...", value = 0.3, {
+        result <- tryCatch(
+          generate_attestation_plan(
+            teacher_id = input$selected_teacher,
+            target_category = input$att_target,
+            total_weeks = input$att_weeks %||% 12,
+            db_pool = db_pool,
+            user_id = user_data()$id
+          ),
+          error = function(e) list(success = FALSE, message = e$message)
+        )
+        setProgress(value = 1)
+      })
+
+      att_plan_result(result)
+
+      if (result$success) {
+        notify_success("Attestasiya planı yaradıldı!")
+      } else {
+        notify_error(paste("Plan xətası:", result$message))
+      }
+    })
+
+    # Cari hazırlıq səviyyəsi
+    output$att_readiness_ui <- renderUI({
+      # Əvvəlcə DB-dəki aktiv planı yoxla, sonra yenisini
+      result <- att_plan_result()
+      if (is.null(result)) {
+        req(input$selected_teacher)
+        plan <- get_active_attestation_plan(input$selected_teacher, db_pool)
+        if (!is.null(plan)) {
+          readiness <- plan$current_readiness %||% 0
+        } else {
+          return(tags$p(style = "color:#999;", "Plan yaradılmayıb"))
+        }
+      } else if (!result$success) {
+        return(NULL)
+      } else {
+        readiness <- result$current_readiness %||% 0
+      }
+
+      bar_color <- if (readiness >= 70) "#27ae60" else if (readiness >= 40) "#f39c12" else "#e74c3c"
+      tags$div(
+        tags$div(style = "text-align:center;",
+          tags$h2(style = paste0("color:", bar_color, ";"), paste0(round(readiness), "%"))
+        ),
+        tags$div(style = "background:#ecf0f1; border-radius:6px; height:12px;",
+          tags$div(style = paste0("background:", bar_color, "; width:", readiness,
+                                   "%; height:100%; border-radius:6px;"))
+        )
+      )
+    })
+
+    # Boşluq analizi
+    output$att_gap_ui <- renderUI({
+      result <- att_plan_result()
+      if (is.null(result) || !result$success) {
+        req(input$selected_teacher)
+        plan <- get_active_attestation_plan(input$selected_teacher, db_pool)
+        if (!is.null(plan) && !is.null(plan$plan_data)) {
+          gap <- plan$plan_data$gap_analysis
+        } else return(NULL)
+      } else {
+        gap <- result$gap_analysis
+      }
+      if (is_empty(gap)) return(NULL)
+      tags$div(style = "margin-top:10px; font-size:0.9em; color:#555;",
+        tags$strong("Boşluq Analizi: "), tags$br(),
+        tags$em(gap))
+    })
+
+    # Plan UI
+    output$att_plan_ui <- renderUI({
+      result <- att_plan_result()
+      plan_data <- NULL
+
+      if (!is.null(result) && result$success) {
+        plan_data <- result$plan
+      } else {
+        req(input$selected_teacher)
+        plan <- get_active_attestation_plan(input$selected_teacher, db_pool)
+        if (!is.null(plan)) plan_data <- plan$plan_data
+      }
+
+      if (is.null(plan_data)) {
+        return(tags$div(style = "text-align:center; color:#999; padding:40px;",
+          icon("certificate", style = "font-size:2.5em;"), tags$br(), tags$br(),
+          tags$p("Hədəf kateqoriya seçin və 'Plan Yarat' basın")))
+      }
+
+      weekly_plan <- plan_data$weekly_plan
+      if (is.null(weekly_plan) || length(weekly_plan) == 0) {
+        return(tags$p("Həftəlik plan tapılmadı"))
+      }
+
+      week_items <- lapply(weekly_plan, function(w) {
+        week_num <- w$week %||% "?"
+        theme <- w$theme %||% ""
+        milestone <- w$milestone %||% ""
+        tasks <- w$tasks
+
+        task_items <- if (is.list(tasks) && length(tasks) > 0) {
+          lapply(tasks, function(t) {
+            task_text <- if (is.data.frame(t)) t$task[1] else t$task %||% ""
+            task_type <- if (is.data.frame(t)) t$type[1] else t$type %||% ""
+            task_hours <- if (is.data.frame(t)) t$hours[1] else t$hours %||% ""
+            tags$li(style = "margin-bottom:4px;",
+              tags$span(task_text),
+              tags$small(style = "color:#888; margin-left:6px;",
+                paste0("(", task_type, ", ", task_hours, " saat)")))
+          })
+        } else if (is.data.frame(tasks) && nrow(tasks) > 0) {
+          lapply(seq_len(nrow(tasks)), function(j) {
+            tags$li(style = "margin-bottom:4px;",
+              tags$span(tasks$task[j]),
+              tags$small(style = "color:#888; margin-left:6px;",
+                paste0("(", tasks$type[j], ", ", tasks$hours[j], " saat)")))
+          })
+        } else list()
+
+        tags$div(style = "border:1px solid #ddd; border-radius:8px; padding:12px; margin-bottom:10px;",
+          tags$div(style = "display:flex; justify-content:space-between; align-items:center;",
+            tags$strong(paste0("Həftə ", week_num, ": ", theme)),
+            tags$span(class = "label label-primary", milestone)
+          ),
+          tags$ul(style = "margin-top:8px;", task_items)
+        )
+      })
+
+      tags$div(style = "max-height:500px; overflow-y:auto;", week_items)
+    })
+
+    # Portfolio maddələri
+    output$att_portfolio_ui <- renderUI({
+      result <- att_plan_result()
+      plan_data <- NULL
+      if (!is.null(result) && result$success) {
+        plan_data <- result$plan
+      } else {
+        req(input$selected_teacher)
+        plan <- get_active_attestation_plan(input$selected_teacher, db_pool)
+        if (!is.null(plan)) plan_data <- plan$plan_data
+      }
+      if (is.null(plan_data) || is.null(plan_data$portfolio_items)) return(NULL)
+      items <- plan_data$portfolio_items
+      tags$ul(lapply(items, function(item) tags$li(item)))
+    })
+
+    # Lazımi sənədlər
+    output$att_documents_ui <- renderUI({
+      result <- att_plan_result()
+      plan_data <- NULL
+      if (!is.null(result) && result$success) {
+        plan_data <- result$plan
+      } else {
+        req(input$selected_teacher)
+        plan <- get_active_attestation_plan(input$selected_teacher, db_pool)
+        if (!is.null(plan)) plan_data <- plan$plan_data
+      }
+      if (is.null(plan_data) || is.null(plan_data$key_documents)) return(NULL)
+      docs <- plan_data$key_documents
+      tags$ul(lapply(docs, function(doc) tags$li(doc)))
+    })
   })
+}
+
+#' Tövsiyə kartı render et (köməkçi funksiya)
+render_recommendation_card <- function(rec, ns) {
+  if (is.data.frame(rec)) {
+    area <- rec$weak_area[1] %||% ""
+    priority_val <- rec$priority[1] %||% "medium"
+    rec_text <- rec$recommendation[1] %||% ""
+    expected <- rec$expected_outcome[1] %||% ""
+    strategy <- rec$strategy_type[1] %||% "general"
+  } else {
+    area <- rec$weak_area %||% ""
+    priority_val <- rec$priority %||% "medium"
+    rec_text <- rec$recommendation %||% ""
+    expected <- rec$expected_outcome %||% ""
+    strategy <- rec$strategy_type %||% "general"
+  }
+
+  priority_color <- switch(priority_val, high = "#e74c3c", medium = "#f39c12", "#3498db")
+  priority_icon <- switch(priority_val,
+    high = "exclamation-circle", medium = "info-circle", "check-circle")
+
+  strategy_labels <- c(
+    classroom_management = "Sinif idarəetməsi",
+    teaching_method = "Tədris metodikası",
+    ict_integration = "İKT inteqrasiyası",
+    assessment = "Qiymətləndirmə",
+    collaboration = "Əməkdaşlıq",
+    professional_dev = "Peşəkar inkişaf",
+    inclusive = "İnklüziv təhsil",
+    general = "Ümumi"
+  )
+  strategy_label <- strategy_labels[strategy] %||% strategy
+
+  tags$div(
+    style = paste0("border:1px solid #ddd; border-radius:8px; padding:14px; margin-bottom:10px;
+                     border-left:5px solid ", priority_color, ";"),
+    tags$div(style = "display:flex; justify-content:space-between; align-items:center;",
+      tags$h5(style = "margin:0;",
+        icon(priority_icon, style = paste0("color:", priority_color)), " ", area),
+      tags$span(class = "label label-default", style = "font-size:0.8em;", strategy_label)
+    ),
+    tags$p(style = "margin:8px 0; font-size:0.95em;", rec_text),
+    if (!is_empty(expected))
+      tags$div(style = "background:#f0fff4; padding:6px 10px; border-radius:4px; font-size:0.85em;",
+        tags$strong("Gözlənilən nəticə: "), expected)
+  )
 }

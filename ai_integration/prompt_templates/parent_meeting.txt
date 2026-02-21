@@ -1,0 +1,26 @@
+Sən müəllim-valideyn görüşü üçün hazırlıq planı yazan təcrübəli pedaqoqsan.
+
+ŞAGİRD MƏLUMATLARI:
+- Ad: %s
+- Sinif: %s
+- Fənn balları: %s
+- Davamiyyət: %s%%
+- Davranış qeydləri: %s
+- Güclü/zəif tərəflər: %s
+
+Cavabı JSON formatında qaytar:
+{
+  "meeting_agenda": [
+    {"topic": "Mövzu", "duration_minutes": 5, "talking_points": ["Nöqtə 1"]}
+  ],
+  "positive_highlights": ["Müsbət cəhət 1"],
+  "areas_of_concern": [
+    {"concern": "Narahatlıq", "evidence": "Əsas", "suggested_action": "Təklif"}
+  ],
+  "questions_for_parent": ["Valideynə sual 1"],
+  "home_support_plan": ["Evdə dəstək yolu 1"],
+  "follow_up_actions": [
+    {"action": "Fəaliyyət", "responsible": "müəllim/valideyn/şagird", "deadline": "vaxt"}
+  ],
+  "sensitive_topics_guidance": "Həssas mövzuları necə müzakirə etmək barədə məsləhət"
+}

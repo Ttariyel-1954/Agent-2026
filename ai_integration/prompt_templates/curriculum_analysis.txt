@@ -1,4 +1,4 @@
-Sən kurikulum analizi mütəxəssisisən. Verilmiş kurikulum standartları ilə qiymətləndirmə sualları arasındakı uyğunluğu təhlil et.
+Sən kurikulum analizi mütəxəssisisən. Verilmiş kurikulum standartları ilə qiymətləndirmə sualları arasındakı uyğunluğu hərtərəfli təhlil et.
 
 KURIKULUM STANDARTLARI:
 %s
@@ -6,33 +6,59 @@ KURIKULUM STANDARTLARI:
 QİYMƏTLƏNDİRMƏ SUALLARI:
 %s
 
-Aşağıdakıları analiz et:
+TƏHLİL TAPŞIRIQLARI:
 
-1. ƏHATƏ ANALİZİ:
+1. ƏHATƏ ANALİZİ (Coverage Analysis):
    - Hər standartın ən azı bir sualla əhatə olunub-olunmadığını yoxla
    - Əhatə faizini hesabla
+   - Hər standart üçün hansı sualların uyğun olduğunu göstər
 
-2. WEBB DOK UYĞUNLUQ:
+2. WEBB DOK UYĞUNLUQ (Depth of Knowledge Alignment):
    - Standartların DOK səviyyələri ilə sualların DOK səviyyələrini müqayisə et
-   - Webb uyğunluq indeksini hesabla
+   - Webb uyğunluq indeksini hesabla (0-1 arası)
+   - DOK1-DOK4 arasında bölgünü göstər
 
-3. BOŞLUQLAR:
+3. BLOOM UYĞUNLUQ:
+   - Standartlardakı idrak səviyyələri ilə sualların Bloom səviyyələrini müqayisə et
+   - Aşağı səviyyəli (bilmə, anlama) vs yuxarı səviyyəli (təhlil, qiymətləndirmə, yaratma) nisbətini hesabla
+
+4. BOŞLUQLAR (Gaps):
    - Heç bir sualla əhatə olunmayan standartları tap
-   - Bu boşluqların təsirini qiymətləndir
+   - Bu boşluqların ciddilik səviyyəsini qiymətləndir (kritik, orta, aşağı)
+   - Hər boşluq üçün təsir analizi apar
 
-4. ARTIQLILAR:
-   - Həddindən artıq qiymətləndirmiş standartları tap (3-dən çox sual)
+5. ARTIQLILAR (Redundancies):
+   - Həddindən artıq qiymətləndirilmiş standartları tap (3-dən çox sual)
+   - Təkrarlanan sualları müəyyən et
 
-5. TÖVSİYƏLƏR:
-   - Uyğunluğu yaxşılaşdırmaq üçün konkret tövsiyələr ver
+6. ÇƏTİNLİK BALANSSI:
+   - Asan/Orta/Çətin sualların paylanmasını analiz et
+   - Optimal paylanma ilə müqayisə et (30%/50%/20%)
+
+7. TÖVSİYƏLƏR:
+   - Uyğunluğu yaxşılaşdırmaq üçün konkret, prioritetli tövsiyələr ver
    - Hansı sahələrdə əlavə suallar lazımdır
+   - Hansı sualları dəyişdirmək/silmək lazımdır
 
-Cavabı aşağıdakı JSON formatında qaytar:
+Cavabı YALNIZ JSON formatında qaytar:
 {
   "coverage": 75.5,
   "webb_index": 0.82,
-  "gaps": ["Standart kodu 1", "Standart kodu 2"],
-  "redundancies": ["Standart kodu 3"],
+  "bloom_distribution": {
+    "lower_order": 45,
+    "higher_order": 55
+  },
+  "difficulty_balance": {
+    "easy": 30,
+    "medium": 50,
+    "hard": 20
+  },
+  "gaps": [
+    {"standard": "kod", "severity": "kritik/orta/aşağı", "impact": "Təsir izahı"}
+  ],
+  "redundancies": [
+    {"standard": "kod", "question_count": 5, "recommendation": "Azaltmaq lazımdır"}
+  ],
   "dok_alignment": {
     "dok1": {"standards": 5, "items": 8},
     "dok2": {"standards": 8, "items": 6},
@@ -40,8 +66,8 @@ Cavabı aşağıdakı JSON formatında qaytar:
     "dok4": {"standards": 2, "items": 1}
   },
   "recommendations": [
-    "Tövsiyə 1",
-    "Tövsiyə 2"
+    {"priority": "yüksək/orta/aşağı", "action": "Tövsiyə təsviri", "affected_standards": ["kod1"]}
   ],
-  "summary": "Ümumi qiymətləndirmə"
+  "summary": "Ümumi qiymətləndirmə (2-3 cümlə)",
+  "overall_quality_score": 78
 }

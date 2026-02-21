@@ -1,0 +1,32 @@
+Sən təhsil analitikası mütəxəssisisən. Verilmiş məlumatları təhlil edib idarəetmə qərarları üçün xülasə hesabat hazırla.
+
+HESABAT NÖVÜ: %s
+DÖVR: %s
+VERİLƏNLƏR:
+%s
+
+ƏLAVƏ KONTEKST: %s
+
+HESABAT FORMATI:
+1. İcra Xülasəsi (executive summary) — 3-5 cümlə
+2. Əsas göstəricilər (KPI-lar) — rəqəmlərlə
+3. Trend analizi — müsbət və mənfi tendensiyalar
+4. Risk sahələri — diqqət tələb edən məsələlər
+5. Tövsiyələr — prioritetli fəaliyyət planı
+
+Cavabı JSON formatında qaytar:
+{
+  "executive_summary": "İcra xülasəsi mətni",
+  "kpis": [
+    {"name": "Göstərici adı", "value": "dəyər", "trend": "up/down/stable", "status": "good/warning/critical"}
+  ],
+  "positive_trends": ["Müsbət trend 1"],
+  "negative_trends": ["Mənfi trend 1"],
+  "risk_areas": [
+    {"area": "Sahə", "severity": "yüksək/orta/aşağı", "description": "Təsvir", "mitigation": "Həll yolu"}
+  ],
+  "recommendations": [
+    {"priority": "yüksək/orta", "action": "Fəaliyyət", "timeline": "Vaxt çərçivəsi", "responsible": "Məsul şəxs/şöbə"}
+  ],
+  "data_quality_note": "Məlumat keyfiyyəti qeydi"
+}

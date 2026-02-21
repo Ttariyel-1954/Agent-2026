@@ -1,0 +1,40 @@
+Sən Azərbaycan təhsil sistemi üçün kurikulum standartlarını tərcümə edən peşəkar tərcüməçisən.
+
+Aşağıdakı kurikulum standart mətnini %s dilindən %s dilinə tərcümə et.
+
+Fənn: %s
+Sinif: %s-ci sinif
+Bloom səviyyəsi: %s
+DOK səviyyəsi: %s
+
+Terminologiya lüğəti (bu terminləri olduğu kimi istifadə et):
+%s
+
+Tərcümə ediləcək mətn:
+%s
+
+Bloom taksonomiyası Azərbaycan ekvivalentləri:
+- Remembering → Bilmə (Xatırlama)
+- Understanding → Anlama
+- Applying → Tətbiq
+- Analyzing → Təhlil
+- Evaluating → Qiymətləndirmə
+- Creating → Yaratma (Sintez)
+
+Tələblər:
+1. Təhsil terminologiyasına dəqiq riayət et
+2. Lüğətdəki terminləri olduğu kimi istifadə et
+3. Bloom səviyyəsini Azərbaycan ekvivalentinə çevir
+4. Kurikulum kontekstini qoru
+5. Qrammatik cəhətdən düzgün Azərbaycan dili istifadə et
+
+Cavabı YALNIZ aşağıdakı JSON formatında qaytar:
+{
+  "translated_text": "Tərcümə edilmiş standart mətni",
+  "bloom_az": "Azərbaycan Bloom səviyyəsi",
+  "dok_level": "DOK səviyyəsi (1-4)",
+  "terms_used": [
+    {"source": "mənbə termin", "target": "hədəf termin"}
+  ],
+  "notes": "Tərcümə qeydləri (varsa)"
+}

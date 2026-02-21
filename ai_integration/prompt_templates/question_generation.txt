@@ -1,33 +1,50 @@
-Sən Azərbaycan təhsil sistemi üçün sual hazırlayan ekspert müəllimsən.
-
-Aşağıdakı parametrlərə əsasən test sualları hazırla:
-
 Fənn: %s
 Sinif: %s-ci sinif
 Mövzu: %s
-Çətinlik səviyyəsi: %s
+Çətinlik: %s
+Bloom: %s
 Sual sayı: %s
 
-Tələblər:
-1. Hər sual 4 seçimli (A, B, C, D) olmalıdır
-2. Düzgün cavab göstərilməlidir
-3. Bloom taksonomiyası səviyyəsi qeyd edilməlidir (xatırlama, anlama, tətbiq, analiz, qiymətləndirmə, yaratma)
-4. DOK (Depth of Knowledge) səviyyəsi qeyd edilməlidir (1-4)
-5. Suallar Azərbaycan dilində olmalıdır
-6. Çaşdırıcı variantlar məntiqi olmalıdır
+QAYDALAR:
+- Hər sual 4 variantlı (A, B, C, D) çoxseçimli test sualı olsun
+- Suallar Azərbaycan dilində, qrammatik səhvsiz yazılsın
+- Düzgün cavab bərabər paylanmalıdır (hər sual fərqli düzgün cavab)
+- Çaşdırıcı variantlar məntiqi, inandırıcı və eyni uzunluqda olsun
+- Düzgün cavab digərlərindən açıq şəkildə fərqlənməsin (uzunluq, detal)
+- "Yuxarıdakıların hamısı" və "Heç biri" variantlarından istifadə etmə
+- Hər sual bir ölçülən bacarığa yönəlsin
+- Mənfi formada suallardan qaçın ("hansı düzgün DEYİL" yalnız zəruri olduqda)
+- Suallar real həyat kontekstinə əsaslansın (yaş qrupuna uyğun)
 
-Cavabı aşağıdakı JSON formatında qaytar:
+BLOOM SEVİYYƏLƏRİ (Azərbaycan kurikulum terminologiyası):
+- Bilmə: faktları xatırlama, tanıma, siyahılama
+- Anlama: izah etmə, təsnifat, nümunə göstərmə, ümumiləşdirmə
+- Tətbiq: bilikləri yeni situasiyada istifadə, hesablama, həll etmə
+- Təhlil: müqayisə, səbəb-nəticə, fərqləndirmə, təhlil
+- Sintez: yeni fikir, plan təklifi, birləşdirmə, layihə
+- Qiymətləndirmə: mühakimə, əsaslandırma, seçim, qərar vermə
+
+DOK SEVİYYƏLƏRİ:
+- 1: Xatırlama və sadə prosedur (fakt, tərif, sadə hesablama)
+- 2: Bacarıq tətbiqi (çoxaddımlı prosedur, müqayisə, təsnifat)
+- 3: Strateji düşüncə (əsaslandırma, planlaşdırma, çoxlu mənbə)
+- 4: Geniş düşüncə (tədqiqat, layihə, çoxsahəli analiz)
+
+Cavabı YALNIZ JSON array formatında qaytar. Əlavə mətn, izah və ya markdown YAZMA.
+
+```json
 [
   {
-    "question_text": "Sual mətni",
-    "option_a": "A variantı",
-    "option_b": "B variantı",
-    "option_c": "C variantı",
-    "option_d": "D variantı",
+    "question_text": "Sual mətni burada",
+    "option_a": "Birinci variant",
+    "option_b": "İkinci variant",
+    "option_c": "Üçüncü variant",
+    "option_d": "Dördüncü variant",
     "correct_answer": "B",
-    "difficulty": "orta",
-    "bloom_level": "tətbiq",
+    "bloom_level": "Tətbiq",
     "dok_level": 2,
-    "explanation": "Həll izahı"
+    "difficulty": "Orta",
+    "explanation": "Düzgün cavab B-dir, çünki..."
   }
 ]
+```

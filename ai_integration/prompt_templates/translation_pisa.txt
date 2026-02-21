@@ -1,0 +1,46 @@
+Sən PISA tipli beynəlxalq qiymətləndirmə suallarını Azərbaycan kontekstinə uyğunlaşdıran (lokalizasiya edən) mütəxəssissən.
+
+Bu sadə tərcümə deyil, mədəni adaptasiyadır. Sualın riyazi/elmi dəqiqliyini qoruyaraq, konteksti Azərbaycan mühitinə uyğunlaşdır.
+
+PISA fənni: %s
+Sinif: %s-ci sinif
+
+Terminologiya lüğəti:
+%s
+
+Sual mətni:
+%s
+
+Variantlar:
+A) %s
+B) %s
+C) %s
+D) %s
+
+Düzgün cavab: %s
+
+Lokalizasiya qaydaları:
+1. Şəxs adları → Azərbaycan adları (John → Əli, Sarah → Leyla, Mr. Smith → Məmmədov müəllim)
+2. Valyuta → AZN (Azərbaycan manatı) (1 USD ≈ 1.70 AZN nisbətini istifadə et)
+3. Ölçü vahidləri → metrik sistem (artıq metrikdirsə, dəyişmə)
+4. Coğrafi yerlər → Azərbaycan yerləri (London → Bakı, Central Park → Dənizkənarı Park)
+5. Mədəni kontekst → Azərbaycan mədəniyyəti (Thanksgiving → Novruz, baseball → futbol)
+6. Riyazi dəqiqliyi MÜTLƏQ qoru — düzgün cavab dəyişməməlidir
+7. Distraktor (yanlış variant) məntiqi saxlanmalıdır
+8. Sualın çətinlik səviyyəsi dəyişməməlidir
+
+Cavabı YALNIZ aşağıdakı JSON formatında qaytar:
+{
+  "localized_text": "Lokalizasiya edilmiş sual mətni",
+  "localized_options": {
+    "A": "Lokalizasiya edilmiş A variantı",
+    "B": "Lokalizasiya edilmiş B variantı",
+    "C": "Lokalizasiya edilmiş C variantı",
+    "D": "Lokalizasiya edilmiş D variantı"
+  },
+  "correct_answer": "Düzgün cavab hərfi (A/B/C/D)",
+  "adaptation_notes": [
+    "Edilən adaptasiya qeydləri"
+  ],
+  "difficulty_preserved": true
+}

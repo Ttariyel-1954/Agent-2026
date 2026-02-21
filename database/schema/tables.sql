@@ -70,7 +70,22 @@ CREATE TABLE schools (
 );
 
 -- =============================================
--- 3. Siniflər
+-- 3. Fənnlər
+-- =============================================
+
+CREATE TABLE subjects (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(100) NOT NULL,
+    code VARCHAR(20) UNIQUE NOT NULL,
+    category VARCHAR(50) CHECK (category IN ('dəqiq', 'humanitar', 'təbiət', 'ictimai', 'incəsənət', 'texniki', 'bədən_tərbiyəsi')),
+    is_mandatory BOOLEAN DEFAULT TRUE,
+    weekly_hours_default INTEGER DEFAULT 2,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =============================================
+-- 4. Siniflər
 -- =============================================
 
 CREATE TABLE classes (
@@ -93,7 +108,7 @@ CREATE TABLE classes (
 );
 
 -- =============================================
--- 4. Şagirdlər
+-- 5. Şagirdlər
 -- =============================================
 
 CREATE TABLE students (
@@ -131,7 +146,7 @@ CREATE TABLE student_parents (
 );
 
 -- =============================================
--- 5. Müəllimlər
+-- 6. Müəllimlər
 -- =============================================
 
 CREATE TABLE teachers (
@@ -203,21 +218,6 @@ CREATE TABLE teacher_evaluations (
     innovation NUMERIC(3,1) CHECK (innovation BETWEEN 1 AND 5),
     overall_score NUMERIC(3,1) CHECK (overall_score BETWEEN 1 AND 5),
     comments TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- =============================================
--- 6. Fənnlər
--- =============================================
-
-CREATE TABLE subjects (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name VARCHAR(100) NOT NULL,
-    code VARCHAR(20) UNIQUE NOT NULL,
-    category VARCHAR(50) CHECK (category IN ('dəqiq', 'humanitar', 'təbiət', 'ictimai', 'incəsənət', 'texniki', 'bədən_tərbiyəsi')),
-    is_mandatory BOOLEAN DEFAULT TRUE,
-    weekly_hours_default INTEGER DEFAULT 2,
-    description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

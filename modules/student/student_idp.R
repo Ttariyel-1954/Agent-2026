@@ -169,12 +169,16 @@ compute_ability_profile <- function(db_pool, student_id, academic_year) {
            updated_at = NOW()",
         params = list(
           student_id, profiles$subject_id[i], profiles$subject_name[i], academic_year,
-          profiles$avg_score[i], profiles$min_score[i], profiles$max_score[i],
-          profiles$grade_count[i],
-          if (is.na(profiles$theta_estimate[i])) NULL else profiles$theta_estimate[i],
-          if (is.na(profiles$theta_se[i])) NULL else profiles$theta_se[i],
-          profiles$trend_direction[i], profiles$trend_slope[i],
-          profiles$ability_level[i], data$attendance_rate
+          as.numeric(profiles$avg_score[i])[1],
+          as.numeric(profiles$min_score[i])[1],
+          as.numeric(profiles$max_score[i])[1],
+          as.integer(profiles$grade_count[i])[1],
+          if (is.na(profiles$theta_estimate[i])) NA_real_ else as.numeric(profiles$theta_estimate[i])[1],
+          if (is.na(profiles$theta_se[i])) NA_real_ else as.numeric(profiles$theta_se[i])[1],
+          as.character(profiles$trend_direction[i])[1],
+          as.numeric(profiles$trend_slope[i])[1],
+          as.character(profiles$ability_level[i])[1],
+          as.numeric(data$attendance_rate)[1]
         )),
       error = function(e) logger::log_error("Ability profile UPSERT xətası: {e$message}")
     )

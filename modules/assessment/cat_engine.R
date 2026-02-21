@@ -227,7 +227,7 @@ cat_test_server <- function(id, db_pool, user_data) {
       tags$div(
         tags$h4(paste0("Sual #", length(sess$items_administered) + 1)),
         tags$p(class = "lead", item$content),
-        tags$span(class = "badge badge-info", item$difficulty_label),
+        tags$span(class = "badge badge-info", item$difficulty),
         tags$span(class = "badge badge-secondary", item$bloom_level)
       )
     })

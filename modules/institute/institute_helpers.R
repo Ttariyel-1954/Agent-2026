@@ -87,11 +87,12 @@ validate_project_data <- function(data) {
 # === Hesablama Funksiyaları ===
 
 calculate_institute_metrics <- function(db_pool) {
+  if (is.null(db_pool)) return(list(units = 0, personnel = 0, projects = 0, areas = 0))
   tryCatch({
-    units_count <- dbGetQuery(db_pool, "SELECT COUNT(*) as n FROM org_units WHERE is_active = TRUE")$n
-    personnel_count <- dbGetQuery(db_pool, "SELECT COUNT(*) as n FROM unit_personnel WHERE is_active = TRUE")$n
-    active_projects <- dbGetQuery(db_pool, "SELECT COUNT(*) as n FROM unit_projects WHERE status = 'aktiv' AND is_active = TRUE")$n
-    active_areas <- dbGetQuery(db_pool, "SELECT COUNT(*) as n FROM activity_areas WHERE status = 'aktiv' AND is_active = TRUE")$n
+    units_count <- safe_query(db_pool, "SELECT COUNT(*) as n FROM org_units WHERE is_active = TRUE")$n %||% 0
+    personnel_count <- safe_query(db_pool, "SELECT COUNT(*) as n FROM unit_personnel WHERE is_active = TRUE")$n %||% 0
+    active_projects <- safe_query(db_pool, "SELECT COUNT(*) as n FROM unit_projects WHERE status = 'aktiv' AND is_active = TRUE")$n %||% 0
+    active_areas <- safe_query(db_pool, "SELECT COUNT(*) as n FROM activity_areas WHERE status = 'aktiv' AND is_active = TRUE")$n %||% 0
 
     list(
       units = units_count,
@@ -125,9 +126,9 @@ calculate_resource_summary <- function(db_pool, unit_id = NULL) {
     ", where_clause)
 
     if (length(params) > 0) {
-      dbGetQuery(db_pool, sql, params = params)
+      safe_query(db_pool, sql, params = params)
     } else {
-      dbGetQuery(db_pool, sql)
+      safe_query(db_pool, sql)
     }
   }, error = function(e) {
     log_error("Resurs xülasəsi xətası: {e$message}")
@@ -155,9 +156,9 @@ calculate_personnel_summary <- function(db_pool, unit_id = NULL) {
     ", where_clause)
 
     if (length(params) > 0) {
-      dbGetQuery(db_pool, sql, params = params)
+      safe_query(db_pool, sql, params = params)
     } else {
-      dbGetQuery(db_pool, sql)
+      safe_query(db_pool, sql)
     }
   }, error = function(e) {
     log_error("Personal xülasəsi xətası: {e$message}")
@@ -187,9 +188,9 @@ calculate_kpi_completion <- function(db_pool, activity_id = NULL) {
     ", where_clause)
 
     result <- if (length(params) > 0) {
-      dbGetQuery(db_pool, sql, params = params)
+      safe_query(db_pool, sql, params = params)
     } else {
-      dbGetQuery(db_pool, sql)
+      safe_query(db_pool, sql)
     }
 
     if (nrow(result) > 0) {
@@ -211,7 +212,7 @@ calculate_kpi_completion <- function(db_pool, activity_id = NULL) {
 
 build_org_tree <- function(db_pool) {
   tryCatch({
-    units <- dbGetQuery(db_pool, "
+    units <- safe_query(db_pool, "
       SELECT id, parent_id, name, short_name, unit_type, head_name, head_position, is_active
       FROM org_units
       WHERE is_active = TRUE
