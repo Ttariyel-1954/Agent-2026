@@ -12,3 +12,4 @@ app_test*.R
 logs/*.log
 node_modules/
 rsconnect/
+Ders_planlari/

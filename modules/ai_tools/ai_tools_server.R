@@ -202,6 +202,78 @@ question_generator_server <- function(id, db_pool, user_data) {
           topic = input$qg_topic
         ))
 
+        # Sualları Ders_planlari/ qovluğuna saxla
+        tryCatch({
+          dir.create("Ders_planlari", showWarnings = FALSE)
+          q_filename <- paste0(
+            "Suallar_",
+            gsub(" ", "_", input$qg_subject %||% "Fenn"),
+            "_Sinif", input$qg_grade %||% "0",
+            "_", format(Sys.time(), "%Y%m%d_%H%M%S"),
+            ".html"
+          )
+          q_path <- file.path("Ders_planlari", q_filename)
+
+          q_html <- paste0(
+            '<!DOCTYPE html><html><head>',
+            '<meta charset="utf-8">',
+            '<style>',
+            'body { font-family: Arial, sans-serif; font-size: 14pt; ',
+            'line-height: 1.8; margin: 40px; color: #2c3e50; }',
+            'h1 { color: #1B4F72; font-size: 22pt; border-bottom: 2px solid #2E86C1; padding-bottom: 8px; }',
+            'h2 { color: #2E86C1; font-size: 16pt; }',
+            '.question { background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #2E86C1; }',
+            '.option { margin: 5px 0 5px 20px; }',
+            '.correct { color: #27AE60; font-weight: bold; }',
+            '.explanation { color: #7f8c8d; font-style: italic; margin-top: 8px; }',
+            '.header { text-align: center; margin-bottom: 30px; }',
+            '.footer { text-align: center; color: #7f8c8d; margin-top: 40px; ',
+            'border-top: 1px solid #bdc3c7; padding-top: 10px; font-size: 11pt; }',
+            '</style></head><body>',
+            '<div class="header">',
+            '<h1>ARTI-2026 \u2014 Sual Generatoru</h1>',
+            '<p><strong>F\u0259nn:</strong> ', input$qg_subject %||% "",
+            ' | <strong>Sinif:</strong> ', input$qg_grade %||% "", '-ci sinif',
+            ' | <strong>M\u00f6vzu:</strong> ', input$qg_topic %||% "",
+            '</p>',
+            '<p><strong>Tarix:</strong> ', format(Sys.time(), "%d.%m.%Y %H:%M"), '</p>',
+            '</div>'
+          )
+
+          for (i in seq_len(nrow(df))) {
+            q <- df[i, ]
+            q_html <- paste0(q_html,
+              '<div class="question">',
+              '<h2>Sual ', i, '. ', q$question_text %||% "", '</h2>',
+              '<div class="option">A) ', q$option_a %||% "", '</div>',
+              '<div class="option">B) ', q$option_b %||% "", '</div>',
+              if (!is.null(q$option_c) && nchar(q$option_c %||% "") > 0)
+                paste0('<div class="option">C) ', q$option_c, '</div>') else "",
+              if (!is.null(q$option_d) && nchar(q$option_d %||% "") > 0)
+                paste0('<div class="option">D) ', q$option_d, '</div>') else "",
+              '<p class="correct">D\u00fczg\u00fcn cavab: ', q$correct_answer %||% "", '</p>',
+              if (!is.null(q$explanation) && nchar(q$explanation %||% "") > 0)
+                paste0('<p class="explanation">\u0130zah: ', q$explanation, '</p>') else "",
+              if (!is.null(q$bloom_level) && nchar(q$bloom_level %||% "") > 0)
+                paste0('<p><small>Bloom: ', q$bloom_level, ' | \u00c7\u0259tinlik: ', q$difficulty %||% "", '</small></p>') else "",
+              '</div>'
+            )
+          }
+
+          q_html <- paste0(q_html,
+            '<div class="footer">',
+            'ARTI-2026 | Az\u0259rbaycan Respublikas\u0131 T\u0259hsil \u0130nstitutu<br>',
+            'S\u00fcni intellekt t\u0259r\u0259find\u0259n yarad\u0131lm\u0131\u015fd\u0131r \u2014 yoxlama t\u0259l\u0259b olunur',
+            '</div>',
+            '</body></html>'
+          )
+
+          writeLines(q_html, q_path, useBytes = TRUE)
+          log_info(paste("Suallar saxland\u0131:", q_path))
+        }, error = function(e) {
+          log_error(paste("Suallar saxlama x\u0259tas\u0131:", e$message))
+        })
+
         setProgress(value = 1, message = "Tamamlandı!")
         notify_success(paste0(nrow(df), " sual uğurla yaradıldı!"))
       })
@@ -322,45 +394,72 @@ question_generator_server <- function(id, db_pool, user_data) {
       }
     )
 
-    # === Word Export ===
+    # === HTML Export (Word-da da açılır) ===
     output$btn_qg_export_word <- downloadHandler(
       filename = function() {
-        paste0("suallar_", input$qg_subject, "_", input$qg_grade, "sinif_",
-               format(Sys.Date(), "%Y%m%d"), ".docx")
+        paste0("Suallar_",
+               gsub(" ", "_", input$qg_subject %||% "Fenn"),
+               "_", format(Sys.time(), "%Y%m%d_%H%M%S"),
+               ".html")
       },
       content = function(file) {
         df <- generated_questions()
-        if (!is.null(df) && requireNamespace("officer", quietly = TRUE)) {
-          doc <- officer::read_docx()
+        if (is.null(df)) return()
 
-          doc <- officer::body_add_par(doc, "ARTI-2026 AI Sual Generatoru", style = "heading 1")
-          doc <- officer::body_add_par(doc, paste0("Fənn: ", input$qg_subject,
-            " | Sinif: ", input$qg_grade, "-ci sinif | Mövzu: ", input$qg_topic))
-          doc <- officer::body_add_par(doc, paste0("Tarix: ", format(Sys.Date(), "%d.%m.%Y")))
-          doc <- officer::body_add_par(doc, "")
+        q_html <- paste0(
+          '<!DOCTYPE html><html><head>',
+          '<meta charset="utf-8">',
+          '<style>',
+          'body { font-family: Arial, sans-serif; font-size: 14pt; ',
+          'line-height: 1.8; margin: 40px; color: #2c3e50; }',
+          'h1 { color: #1B4F72; font-size: 22pt; border-bottom: 2px solid #2E86C1; padding-bottom: 8px; }',
+          'h2 { color: #2E86C1; font-size: 16pt; }',
+          '.question { background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #2E86C1; }',
+          '.option { margin: 5px 0 5px 20px; }',
+          '.correct { color: #27AE60; font-weight: bold; }',
+          '.explanation { color: #7f8c8d; font-style: italic; margin-top: 8px; }',
+          '.header { text-align: center; margin-bottom: 30px; }',
+          '.footer { text-align: center; color: #7f8c8d; margin-top: 40px; ',
+          'border-top: 1px solid #bdc3c7; padding-top: 10px; font-size: 11pt; }',
+          '</style></head><body>',
+          '<div class="header">',
+          '<h1>ARTI-2026 \u2014 Sual Generatoru</h1>',
+          '<p><strong>F\u0259nn:</strong> ', input$qg_subject %||% "",
+          ' | <strong>Sinif:</strong> ', input$qg_grade %||% "", '-ci sinif',
+          ' | <strong>M\u00f6vzu:</strong> ', input$qg_topic %||% "",
+          '</p>',
+          '<p><strong>Tarix:</strong> ', format(Sys.time(), "%d.%m.%Y %H:%M"), '</p>',
+          '</div>'
+        )
 
-          for (i in seq_len(nrow(df))) {
-            q <- df[i, ]
-            doc <- officer::body_add_par(doc, paste0("Sual ", i, ". ", q$question_text), style = "heading 2")
-            doc <- officer::body_add_par(doc, paste0("A) ", q$option_a))
-            doc <- officer::body_add_par(doc, paste0("B) ", q$option_b))
-            if (!is.null(q$option_c) && nchar(q$option_c) > 0)
-              doc <- officer::body_add_par(doc, paste0("C) ", q$option_c))
-            if (!is.null(q$option_d) && nchar(q$option_d) > 0)
-              doc <- officer::body_add_par(doc, paste0("D) ", q$option_d))
-            doc <- officer::body_add_par(doc, paste0("Düzgün cavab: ", q$correct_answer))
-            if (!is.null(q$explanation) && nchar(q$explanation) > 0)
-              doc <- officer::body_add_par(doc, paste0("İzah: ", q$explanation))
-            if (!is.null(q$bloom_level) && nchar(q$bloom_level) > 0)
-              doc <- officer::body_add_par(doc, paste0("Bloom: ", q$bloom_level,
-                " | Çətinlik: ", q$difficulty))
-            doc <- officer::body_add_par(doc, "")
-          }
-
-          print(doc, target = file)
-        } else {
-          writeLines(questions_to_text(generated_questions()), file)
+        for (i in seq_len(nrow(df))) {
+          q <- df[i, ]
+          q_html <- paste0(q_html,
+            '<div class="question">',
+            '<h2>Sual ', i, '. ', q$question_text %||% "", '</h2>',
+            '<div class="option">A) ', q$option_a %||% "", '</div>',
+            '<div class="option">B) ', q$option_b %||% "", '</div>',
+            if (!is.null(q$option_c) && nchar(q$option_c %||% "") > 0)
+              paste0('<div class="option">C) ', q$option_c, '</div>') else "",
+            if (!is.null(q$option_d) && nchar(q$option_d %||% "") > 0)
+              paste0('<div class="option">D) ', q$option_d, '</div>') else "",
+            '<p class="correct">D\u00fczg\u00fcn cavab: ', q$correct_answer %||% "", '</p>',
+            if (!is.null(q$explanation) && nchar(q$explanation %||% "") > 0)
+              paste0('<p class="explanation">\u0130zah: ', q$explanation, '</p>') else "",
+            if (!is.null(q$bloom_level) && nchar(q$bloom_level %||% "") > 0)
+              paste0('<p><small>Bloom: ', q$bloom_level, ' | \u00c7\u0259tinlik: ', q$difficulty %||% "", '</small></p>') else "",
+            '</div>'
+          )
         }
+
+        q_html <- paste0(q_html,
+          '<div class="footer">',
+          'ARTI-2026 | Az\u0259rbaycan Respublikas\u0131 T\u0259hsil \u0130nstitutu',
+          '</div>',
+          '</body></html>'
+        )
+
+        writeLines(q_html, file, useBytes = TRUE)
       }
     )
 
@@ -604,6 +703,56 @@ lesson_plan_server <- function(id, db_pool, user_data) {
           time = result$response_time_sec %||% 0
         ))
 
+        # Dərs planını fayla saxla
+        plan_content <- raw_text
+        plan_filename <- paste0(
+          "DP_",
+          gsub(" ", "_", input$lp_subject %||% "Fenn"),
+          "_Sinif", input$lp_grade %||% "0",
+          "_", format(Sys.time(), "%Y%m%d_%H%M%S"),
+          ".html"
+        )
+        plan_path <- file.path("Ders_planlari", plan_filename)
+
+        html_content <- paste0(
+          '<!DOCTYPE html><html><head>',
+          '<meta charset="utf-8">',
+          '<style>',
+          'body { font-family: Arial, sans-serif; font-size: 14pt; ',
+          'line-height: 1.8; margin: 40px; color: #2c3e50; }',
+          'h1 { color: #1B4F72; font-size: 22pt; border-bottom: 2px solid #2E86C1; padding-bottom: 8px; }',
+          'h2 { color: #2E86C1; font-size: 18pt; }',
+          'h3 { color: #27AE60; font-size: 16pt; }',
+          'table { border-collapse: collapse; width: 100%; margin: 10px 0; }',
+          'th, td { border: 1px solid #bdc3c7; padding: 10px; text-align: left; font-size: 13pt; }',
+          'th { background: #1B4F72; color: white; }',
+          'tr:nth-child(even) { background: #f2f3f4; }',
+          'ul, ol { margin: 8px 0; }',
+          'li { margin: 4px 0; }',
+          '.header { text-align: center; margin-bottom: 30px; }',
+          '.footer { text-align: center; color: #7f8c8d; margin-top: 40px; ',
+          'border-top: 1px solid #bdc3c7; padding-top: 10px; font-size: 11pt; }',
+          '</style></head><body>',
+          '<div class="header">',
+          '<h1>ARTI-2026 \u2014 D\u0259rs Plan\u0131</h1>',
+          '<p><strong>Tarix:</strong> ', format(Sys.time(), "%d.%m.%Y %H:%M"), '</p>',
+          '</div>',
+          plan_content,
+          '<div class="footer">',
+          'ARTI-2026 | Az\u0259rbaycan Respublikas\u0131 T\u0259hsil \u0130nstitutu<br>',
+          'S\u00fcni intellekt t\u0259r\u0259find\u0259n yarad\u0131lm\u0131\u015fd\u0131r \u2014 yoxlama t\u0259l\u0259b olunur',
+          '</div>',
+          '</body></html>'
+        )
+
+        tryCatch({
+          dir.create("Ders_planlari", showWarnings = FALSE)
+          writeLines(html_content, plan_path, useBytes = TRUE)
+          log_info(paste("D\u0259rs plan\u0131 saxland\u0131:", plan_path))
+        }, error = function(e) {
+          log_error(paste("D\u0259rs plan\u0131 saxlama x\u0259tas\u0131:", e$message))
+        })
+
         setProgress(value = 1, message = "Tamamlandı!")
         notify_success("Dərs planı uğurla yaradıldı!")
       })
@@ -665,91 +814,49 @@ lesson_plan_server <- function(id, db_pool, user_data) {
       }
     )
 
-    # === Word Export (Gün 10) ===
+    # === HTML Export (Word-da da açılır) ===
     output$btn_lp_export_word <- downloadHandler(
       filename = function() {
-        paste0("ders_plani_", input$lp_subject, "_", input$lp_grade, "sinif_",
-               format(Sys.Date(), "%Y%m%d"), ".docx")
+        paste0("Ders_Plani_",
+               gsub(" ", "_", input$lp_subject %||% "Fenn"),
+               "_", format(Sys.time(), "%Y%m%d_%H%M%S"),
+               ".html")
       },
       content = function(file) {
+        raw <- plan_raw_text()
         plan <- generated_plan()
-        if (!is.null(plan) && requireNamespace("officer", quietly = TRUE)) {
-          doc <- officer::read_docx()
+        if (is.null(raw) && is.null(plan)) return()
 
-          doc <- officer::body_add_par(doc, plan$title %||% "Dərs Planı", style = "heading 1")
-          doc <- officer::body_add_par(doc, paste0("Fənn: ", plan$subject, " | Sinif: ", plan$grade,
-            "-ci sinif | Müddət: ", plan$duration, " dəq."))
-          doc <- officer::body_add_par(doc, paste0("Mövzu: ", plan$topic))
-          if (!is.null(plan$method)) doc <- officer::body_add_par(doc, paste0("Metod: ", plan$method))
-          doc <- officer::body_add_par(doc, paste0("Tarix: ", format(Sys.Date(), "%d.%m.%Y")))
-          doc <- officer::body_add_par(doc, "")
+        body_content <- if (!is.null(raw)) raw else lesson_plan_to_text(plan)
 
-          if (!is.null(plan$learning_outcomes) && length(plan$learning_outcomes) > 0) {
-            doc <- officer::body_add_par(doc, "ÖYRƏNMƏ NƏTİCƏLƏRİ", style = "heading 2")
-            for (i in seq_along(plan$learning_outcomes)) {
-              doc <- officer::body_add_par(doc, paste0(i, ". ", plan$learning_outcomes[[i]]))
-            }
-            doc <- officer::body_add_par(doc, "")
-          }
-
-          if (!is.null(plan$stages) && length(plan$stages) > 0) {
-            doc <- officer::body_add_par(doc, "DƏRS MƏRHƏLƏLƏRİ", style = "heading 2")
-            for (i in seq_along(plan$stages)) {
-              s <- plan$stages[[i]]
-              name <- s$name %||% paste("Mərhələ", i)
-              dur <- if (!is.null(s$duration) && s$duration != "") paste0(" (", s$duration, " dəq.)") else ""
-              doc <- officer::body_add_par(doc, paste0(i, ". ", name, dur), style = "heading 3")
-              if (!is.null(s$teacher_activity) && nchar(s$teacher_activity) > 0)
-                doc <- officer::body_add_par(doc, paste0("Müəllim fəaliyyəti: ", s$teacher_activity))
-              if (!is.null(s$student_activity) && nchar(s$student_activity) > 0)
-                doc <- officer::body_add_par(doc, paste0("Şagird fəaliyyəti: ", s$student_activity))
-              if (!is.null(s$resources))
-                doc <- officer::body_add_par(doc, paste0("Resurslar: ",
-                  if (is.list(s$resources)) paste(unlist(s$resources), collapse = ", ") else s$resources))
-              if (!is.null(s$assessment) && nchar(s$assessment) > 0)
-                doc <- officer::body_add_par(doc, paste0("Qiymətləndirmə: ", s$assessment))
-              if (!is.null(s$description) && nchar(s$description) > 0)
-                doc <- officer::body_add_par(doc, s$description)
-              doc <- officer::body_add_par(doc, "")
-            }
-          }
-
-          if (!is.null(plan$differentiation)) {
-            d <- plan$differentiation
-            doc <- officer::body_add_par(doc, "FƏRQLƏNDİRMƏ", style = "heading 2")
-            if (!is.null(d$advanced)) doc <- officer::body_add_par(doc, paste0("Güclü şagirdlər: ", d$advanced))
-            if (!is.null(d$struggling)) doc <- officer::body_add_par(doc, paste0("Çətinlik çəkən: ", d$struggling))
-            if (!is.null(d$ell)) doc <- officer::body_add_par(doc, paste0("Dil dəstəyi: ", d$ell))
-            doc <- officer::body_add_par(doc, "")
-          }
-
-          if (!is.null(plan$homework)) {
-            doc <- officer::body_add_par(doc, "EV TAPŞIRIĞI", style = "heading 2")
-            doc <- officer::body_add_par(doc,
-              if (is.list(plan$homework)) paste(unlist(plan$homework), collapse = "; ") else plan$homework)
-            doc <- officer::body_add_par(doc, "")
-          }
-
-          if (!is.null(plan$materials) && length(plan$materials) > 0) {
-            doc <- officer::body_add_par(doc, "LAZIM OLAN MATERİALLAR", style = "heading 2")
-            for (m in plan$materials) {
-              doc <- officer::body_add_par(doc, paste0("- ", m))
-            }
-            doc <- officer::body_add_par(doc, "")
-          }
-
-          if (!is.null(plan$notes) && nchar(plan$notes) > 0) {
-            doc <- officer::body_add_par(doc, "QEYDLƏR", style = "heading 2")
-            doc <- officer::body_add_par(doc, plan$notes)
-          }
-
-          doc <- officer::body_add_par(doc, "")
-          doc <- officer::body_add_par(doc, "--- ARTI-2026 AI Dərs Planı Generatoru ilə yaradılmışdır ---")
-
-          print(doc, target = file)
-        } else {
-          writeLines(lesson_plan_to_text(generated_plan()), file)
-        }
+        html_content <- paste0(
+          '<!DOCTYPE html><html><head>',
+          '<meta charset="utf-8">',
+          '<style>',
+          'body { font-family: Arial, sans-serif; font-size: 14pt; ',
+          'line-height: 1.8; margin: 40px; color: #2c3e50; }',
+          'h1 { color: #1B4F72; font-size: 22pt; border-bottom: 2px solid #2E86C1; padding-bottom: 8px; }',
+          'h2 { color: #2E86C1; font-size: 18pt; }',
+          'h3 { color: #27AE60; font-size: 16pt; }',
+          'table { border-collapse: collapse; width: 100%; margin: 10px 0; }',
+          'th, td { border: 1px solid #bdc3c7; padding: 10px; font-size: 13pt; }',
+          'th { background: #1B4F72; color: white; }',
+          'tr:nth-child(even) { background: #f2f3f4; }',
+          '.header { text-align: center; margin-bottom: 30px; }',
+          '.footer { text-align: center; color: #7f8c8d; margin-top: 40px; ',
+          'border-top: 1px solid #bdc3c7; padding-top: 10px; font-size: 11pt; }',
+          '</style></head><body>',
+          '<div class="header">',
+          '<h1>ARTI-2026 \u2014 D\u0259rs Plan\u0131</h1>',
+          '<p><strong>Tarix:</strong> ', format(Sys.time(), "%d.%m.%Y %H:%M"), '</p>',
+          '</div>',
+          body_content,
+          '<div class="footer">',
+          'ARTI-2026 | Az\u0259rbaycan Respublikas\u0131 T\u0259hsil \u0130nstitutu',
+          '</div>',
+          '</body></html>'
+        )
+        writeLines(html_content, file, useBytes = TRUE)
       }
     )
 

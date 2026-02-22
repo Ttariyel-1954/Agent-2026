@@ -33,18 +33,20 @@ list_prompt_templates <- function() {
 extract_json_from_response <- function(response) {
   if (is.null(response) || !is.character(response)) return(NULL)
 
-  # 1. ```json ... ``` bloku
-  json_match <- regmatches(response, regexpr("```json\\s*\\n(.*?)\\n\\s*```", response, perl = TRUE))
-  if (length(json_match) > 0) {
-    json_text <- gsub("```json\\s*\\n|\\n\\s*```", "", json_match[1])
+  # 1. ```json ... ``` bloku ((?s) — dot matches newline)
+  json_match <- regmatches(response, regexpr("(?s)```json\\s*\\n(.*?)\\n\\s*```", response, perl = TRUE))
+  if (length(json_match) > 0 && nchar(json_match[1]) > 0) {
+    json_text <- sub("(?s)^```json\\s*\\n", "", json_match[1], perl = TRUE)
+    json_text <- sub("(?s)\\n\\s*```$", "", json_text, perl = TRUE)
     result <- try_parse_json(json_text)
     if (!is.null(result)) return(result)
   }
 
   # 2. ``` ... ``` bloku (json etiketsiz)
-  code_match <- regmatches(response, regexpr("```\\s*\\n(.*?)\\n\\s*```", response, perl = TRUE))
-  if (length(code_match) > 0) {
-    code_text <- gsub("```\\s*\\n|\\n\\s*```", "", code_match[1])
+  code_match <- regmatches(response, regexpr("(?s)```\\s*\\n(.*?)\\n\\s*```", response, perl = TRUE))
+  if (length(code_match) > 0 && nchar(code_match[1]) > 0) {
+    code_text <- sub("(?s)^```\\s*\\n", "", code_match[1], perl = TRUE)
+    code_text <- sub("(?s)\\n\\s*```$", "", code_text, perl = TRUE)
     result <- try_parse_json(code_text)
     if (!is.null(result)) return(result)
   }

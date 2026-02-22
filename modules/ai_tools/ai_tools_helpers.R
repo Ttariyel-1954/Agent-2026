@@ -103,11 +103,11 @@ questions_to_dataframe <- function(questions_json) {
       rows <- lapply(questions_json, function(q) {
         data.frame(
           question_text   = q$question_text %||% q$text %||% "",
-          option_a        = q$option_a %||% q$options$A %||% q$options[[1]] %||% "",
-          option_b        = q$option_b %||% q$options$B %||% q$options[[2]] %||% "",
-          option_c        = q$option_c %||% q$options$C %||% q$options[[3]] %||% "",
-          option_d        = q$option_d %||% q$options$D %||% q$options[[4]] %||% "",
-          option_e        = q$option_e %||% q$options$E %||% q$options[[5]] %||% "",
+          option_a        = q$option_a %||% q$options$A %||% tryCatch(q$options[[1]], error = function(e) "") %||% "",
+          option_b        = q$option_b %||% q$options$B %||% tryCatch(q$options[[2]], error = function(e) "") %||% "",
+          option_c        = q$option_c %||% q$options$C %||% tryCatch(q$options[[3]], error = function(e) "") %||% "",
+          option_d        = q$option_d %||% q$options$D %||% tryCatch(q$options[[4]], error = function(e) "") %||% "",
+          option_e        = q$option_e %||% q$options$E %||% tryCatch(q$options[[5]], error = function(e) "") %||% "",
           correct_answer  = toupper(trimws(q$correct_answer %||% q$answer %||% "A")),
           explanation     = q$explanation %||% q$izah %||% "",
           bloom_level     = q$bloom_level %||% q$bloom %||% "",
