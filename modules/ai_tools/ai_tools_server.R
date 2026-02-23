@@ -166,6 +166,20 @@ question_generator_server <- function(id, db_pool, user_data) {
           list(success = FALSE, message = e$message, content = e$message)
         })
 
+        # result-u normalize et (character vector ola bilər)
+        if (is.character(result)) {
+          result <- list(success = TRUE, content = result)
+        }
+        if (is.list(result) && is.null(result$success)) {
+          result$success <- TRUE
+        }
+        if (is.list(result) && is.null(result$content)) {
+          if (!is.null(result$text)) result$content <- result$text
+          else if (!is.null(result$response)) result$content <- result$response
+          else if (!is.null(result$message)) result$content <- result$message
+          else result$content <- paste(unlist(result), collapse = "\n")
+        }
+
         setProgress(value = 0.7, message = "Cavab emal edilir...")
 
         if (!isTRUE(result$success)) {
@@ -173,8 +187,14 @@ question_generator_server <- function(id, db_pool, user_data) {
           return()
         }
 
+        # content normalizasiya — list/vector ola bilər
+        content_val <- result$content %||% result$message
+        if (is.list(content_val)) content_val <- paste(unlist(content_val), collapse = "\n")
+        if (length(content_val) > 1) content_val <- paste(content_val, collapse = "\n")
+        if (is.null(content_val) || identical(content_val, NA) || identical(content_val, NA_character_)) content_val <- ""
+
         questions_raw <- tryCatch(
-          extract_json_from_response(result$content %||% result$message),
+          extract_json_from_response(content_val),
           error = function(e) NULL
         )
 
@@ -501,6 +521,162 @@ question_generator_server <- function(id, db_pool, user_data) {
 }
 
 # =============================================
+# FORMAT: JSON → Gözəl HTML çevirici
+# =============================================
+format_lesson_plan_html <- function(content) {
+  plan <- tryCatch({
+    if (is.character(content)) {
+      clean <- gsub("^```json\\s*", "", content)
+      clean <- gsub("```$", "", clean)
+      clean <- trimws(clean)
+      jsonlite::fromJSON(clean, simplifyVector = FALSE)
+    } else {
+      content
+    }
+  }, error = function(e) NULL)
+
+  if (is.null(plan)) {
+    return(paste0("<div style='font-size:15px; line-height:1.8;'>", content, "</div>"))
+  }
+
+  html <- paste0(
+    "<div style='font-family:Arial; color:#2c3e50;'>",
+    "<div style='background:#1B4F72; color:white; padding:20px; border-radius:8px; margin-bottom:20px; text-align:center;'>",
+    "<h1 style='margin:0; font-size:22pt; color:white;'>", plan$lesson_title %||% plan$title %||% "D\u0259rs Plan\u0131", "</h1>",
+    "<p style='margin:8px 0 0 0; font-size:14pt; color:#D6EAF8;'>",
+    (plan$subject %||% ""), " | ", (plan$grade %||% ""), " | ", (plan$duration_minutes %||% plan$duration %||% 45), " d\u0259qiq\u0259</p>",
+    "</div>"
+  )
+
+  if (!is.null(plan$learning_objectives %||% plan$learning_outcomes)) {
+    objs <- plan$learning_objectives %||% plan$learning_outcomes
+    html <- paste0(html,
+      "<div style='background:#EAFAF1; border-left:5px solid #27AE60; padding:15px; margin:15px 0; border-radius:4px;'>",
+      "<h2 style='color:#27AE60; font-size:16pt; margin-top:0;'>T\u0259lim M\u0259qs\u0259dl\u0259ri</h2>",
+      "<ul style='font-size:13pt; line-height:2;'>",
+      paste0("<li>", unlist(objs), "</li>", collapse = ""),
+      "</ul></div>"
+    )
+  }
+
+  if (!is.null(plan$prerequisites)) {
+    html <- paste0(html,
+      "<div style='background:#FEF9E7; border-left:5px solid #F1C40F; padding:15px; margin:15px 0; border-radius:4px;'>",
+      "<h2 style='color:#D4AC0D; font-size:16pt; margin-top:0;'>\u0130lkin Bilikl\u0259r</h2>",
+      "<ul style='font-size:13pt; line-height:2;'>",
+      paste0("<li>", unlist(plan$prerequisites), "</li>", collapse = ""),
+      "</ul></div>"
+    )
+  }
+
+  if (!is.null(plan$materials)) {
+    html <- paste0(html,
+      "<div style='background:#EBF5FB; border-left:5px solid #2E86C1; padding:15px; margin:15px 0; border-radius:4px;'>",
+      "<h2 style='color:#2E86C1; font-size:16pt; margin-top:0;'>Laz\u0131mi Materiallar</h2>",
+      "<ul style='font-size:13pt; line-height:2;'>",
+      paste0("<li>", unlist(plan$materials), "</li>", collapse = ""),
+      "</ul></div>"
+    )
+  }
+
+  phases <- plan$lesson_phases %||% plan$stages
+  if (!is.null(phases)) {
+    html <- paste0(html, "<h2 style='color:#1B4F72; font-size:18pt; border-bottom:3px solid #1B4F72; padding-bottom:8px; margin-top:25px;'>D\u0259rs M\u0259rh\u0259l\u0259l\u0259ri</h2>")
+    phase_colors <- c("#3498DB", "#2ECC71", "#E67E22", "#9B59B6", "#E74C3C", "#1ABC9C")
+
+    for (i in seq_along(phases)) {
+      ph <- phases[[i]]
+      if (is.character(ph)) next
+      if (!is.list(ph)) next
+      clr <- phase_colors[((i - 1) %% length(phase_colors)) + 1]
+      ph_name <- ph$phase %||% ph$name %||% ph$stage_name %||% ""
+      ph_dur <- ph$duration_minutes %||% ph$duration %||% ""
+
+      html <- paste0(html,
+        "<div style='border:2px solid ", clr, "; border-radius:8px; margin:15px 0; overflow:hidden;'>",
+        "<div style='background:", clr, "; color:white; padding:12px 15px;'>",
+        "<h3 style='margin:0; font-size:15pt; color:white;'>",
+        i, ". ", ph_name, " (", ph_dur, " d\u0259q.)</h3>",
+        "</div>",
+        "<div style='padding:15px;'>"
+      )
+
+      if (!is.null(ph$activities)) {
+        html <- paste0(html,
+          "<p style='font-size:13pt;'><strong>F\u0259aliyy\u0259tl\u0259r:</strong></p>",
+          "<ul style='font-size:12pt; line-height:1.8;'>",
+          paste0("<li>", unlist(ph$activities), "</li>", collapse = ""),
+          "</ul>"
+        )
+      }
+      if (!is.null(ph$teacher_actions %||% ph$teacher_activity)) {
+        ta <- ph$teacher_actions %||% ph$teacher_activity
+        html <- paste0(html,
+          "<div style='background:#EBF5FB; padding:12px; border-radius:4px; margin:8px 0;'>",
+          "<p style='font-size:13pt; margin:0;'><strong style='color:#2E86C1;'>M\u00fc\u0259llim:</strong> ", ta, "</p></div>"
+        )
+      }
+      if (!is.null(ph$student_actions %||% ph$student_activity)) {
+        sa <- ph$student_actions %||% ph$student_activity
+        html <- paste0(html,
+          "<div style='background:#EAFAF1; padding:12px; border-radius:4px; margin:8px 0;'>",
+          "<p style='font-size:13pt; margin:0;'><strong style='color:#27AE60;'>\u015eagird:</strong> ", sa, "</p></div>"
+        )
+      }
+      if (!is.null(ph$assessment)) {
+        html <- paste0(html,
+          "<div style='background:#FEF9E7; padding:12px; border-radius:4px; margin:8px 0;'>",
+          "<p style='font-size:13pt; margin:0;'><strong style='color:#D4AC0D;'>Qiym\u0259tl\u0259ndirm\u0259:</strong> ", ph$assessment, "</p></div>"
+        )
+      }
+      html <- paste0(html, "</div></div>")
+    }
+  }
+
+  if (!is.null(plan$differentiation)) {
+    html <- paste0(html,
+      "<h2 style='color:#1B4F72; font-size:18pt; border-bottom:3px solid #1B4F72; padding-bottom:8px; margin-top:25px;'>F\u0259rql\u0259ndirm\u0259</h2>"
+    )
+    if (!is.null(plan$differentiation$advanced)) {
+      html <- paste0(html,
+        "<div style='background:#D5F5E3; padding:15px; border-radius:4px; margin:10px 0;'>",
+        "<h3 style='color:#27AE60; font-size:14pt; margin-top:0;'>G\u00fccl\u00fc \u015eagirdl\u0259r \u00dc\u00e7\u00fcn</h3>",
+        "<p style='font-size:12pt; line-height:1.8;'>", plan$differentiation$advanced, "</p></div>"
+      )
+    }
+    if (!is.null(plan$differentiation$struggling)) {
+      html <- paste0(html,
+        "<div style='background:#FADBD8; padding:15px; border-radius:4px; margin:10px 0;'>",
+        "<h3 style='color:#E74C3C; font-size:14pt; margin-top:0;'>\u00c7\u0259tinlik \u00c7\u0259k\u0259n \u015eagirdl\u0259r \u00dc\u00e7\u00fcn</h3>",
+        "<p style='font-size:12pt; line-height:1.8;'>", plan$differentiation$struggling, "</p></div>"
+      )
+    }
+  }
+
+  if (!is.null(plan$homework)) {
+    hw <- if (is.list(plan$homework)) paste(unlist(plan$homework), collapse = "<br>") else gsub("\n", "<br>", plan$homework)
+    html <- paste0(html,
+      "<div style='background:#F5EEF8; border-left:5px solid #8E44AD; padding:15px; margin:15px 0; border-radius:4px;'>",
+      "<h2 style='color:#8E44AD; font-size:16pt; margin-top:0;'>Ev Tap\u015f\u0131r\u0131\u011f\u0131</h2>",
+      "<p style='font-size:12pt; line-height:1.8;'>", hw, "</p></div>"
+    )
+  }
+
+  if (!is.null(plan$reflection_questions)) {
+    html <- paste0(html,
+      "<div style='background:#F2F3F4; padding:15px; margin:15px 0; border-radius:4px;'>",
+      "<h2 style='color:#5D6D7E; font-size:16pt; margin-top:0;'>M\u00fc\u0259llim Refleksiyas\u0131</h2>",
+      "<ol style='font-size:12pt; line-height:2;'>",
+      paste0("<li>", unlist(plan$reflection_questions), "</li>", collapse = ""),
+      "</ol></div>"
+    )
+  }
+
+  html <- paste0(html, "</div>")
+  return(html)
+}
+
+# =============================================
 # BÖLÜM 2: DƏRS PLANI GENERATORU SERVER (Gün 10)
 # =============================================
 lesson_plan_server <- function(id, db_pool, user_data) {
@@ -641,6 +817,20 @@ lesson_plan_server <- function(id, db_pool, user_data) {
           list(success = FALSE, message = e$message, content = e$message)
         })
 
+        # result-u normalize et (character vector ola bilər)
+        if (is.character(result)) {
+          result <- list(success = TRUE, content = result)
+        }
+        if (is.list(result) && is.null(result$success)) {
+          result$success <- TRUE
+        }
+        if (is.list(result) && is.null(result$content)) {
+          if (!is.null(result$text)) result$content <- result$text
+          else if (!is.null(result$response)) result$content <- result$response
+          else if (!is.null(result$message)) result$content <- result$message
+          else result$content <- paste(unlist(result), collapse = "\n")
+        }
+
         setProgress(value = 0.7, message = "Cavab emal edilir...")
 
         if (!isTRUE(result$success)) {
@@ -648,7 +838,11 @@ lesson_plan_server <- function(id, db_pool, user_data) {
           return()
         }
 
+        # content normalizasiya — list/vector ola bilər
         raw_text <- result$content %||% result$message
+        if (is.list(raw_text)) raw_text <- paste(unlist(raw_text), collapse = "\n")
+        if (length(raw_text) > 1) raw_text <- paste(raw_text, collapse = "\n")
+        if (is.null(raw_text) || identical(raw_text, NA) || identical(raw_text, NA_character_)) raw_text <- "Nəticə boşdur"
         plan_raw_text(raw_text)
 
         plan_data <- tryCatch(
@@ -675,6 +869,8 @@ lesson_plan_server <- function(id, db_pool, user_data) {
             method   = plan_data$method %||% method_name,
             learning_outcomes = plan_data$learning_objectives %||% plan_data$learning_outcomes %||% list(),
             stages = lapply(plan_data$lesson_phases %||% plan_data$stages %||% list(), function(s) {
+              if (is.character(s)) return(list(name = s, duration = "", teacher_activity = "", student_activity = ""))
+              if (!is.list(s)) return(list(name = as.character(s), duration = "", teacher_activity = "", student_activity = ""))
               list(
                 name = s$phase %||% s$name %||% s$stage_name %||% "",
                 duration = s$duration_minutes %||% s$duration %||% "",
@@ -704,7 +900,6 @@ lesson_plan_server <- function(id, db_pool, user_data) {
         ))
 
         # Dərs planını fayla saxla
-        plan_content <- raw_text
         plan_filename <- paste0(
           "DP_",
           gsub(" ", "_", input$lp_subject %||% "Fenn"),
@@ -714,35 +909,19 @@ lesson_plan_server <- function(id, db_pool, user_data) {
         )
         plan_path <- file.path("Ders_planlari", plan_filename)
 
+        formatted_body <- tryCatch(
+          format_lesson_plan_html(raw_text),
+          error = function(e) paste0("<div>", raw_text, "</div>")
+        )
+
         html_content <- paste0(
-          '<!DOCTYPE html><html><head>',
-          '<meta charset="utf-8">',
-          '<style>',
-          'body { font-family: Arial, sans-serif; font-size: 14pt; ',
-          'line-height: 1.8; margin: 40px; color: #2c3e50; }',
-          'h1 { color: #1B4F72; font-size: 22pt; border-bottom: 2px solid #2E86C1; padding-bottom: 8px; }',
-          'h2 { color: #2E86C1; font-size: 18pt; }',
-          'h3 { color: #27AE60; font-size: 16pt; }',
-          'table { border-collapse: collapse; width: 100%; margin: 10px 0; }',
-          'th, td { border: 1px solid #bdc3c7; padding: 10px; text-align: left; font-size: 13pt; }',
-          'th { background: #1B4F72; color: white; }',
-          'tr:nth-child(even) { background: #f2f3f4; }',
-          'ul, ol { margin: 8px 0; }',
-          'li { margin: 4px 0; }',
-          '.header { text-align: center; margin-bottom: 30px; }',
-          '.footer { text-align: center; color: #7f8c8d; margin-top: 40px; ',
-          'border-top: 1px solid #bdc3c7; padding-top: 10px; font-size: 11pt; }',
-          '</style></head><body>',
-          '<div class="header">',
-          '<h1>ARTI-2026 \u2014 D\u0259rs Plan\u0131</h1>',
-          '<p><strong>Tarix:</strong> ', format(Sys.time(), "%d.%m.%Y %H:%M"), '</p>',
-          '</div>',
-          plan_content,
-          '<div class="footer">',
-          'ARTI-2026 | Az\u0259rbaycan Respublikas\u0131 T\u0259hsil \u0130nstitutu<br>',
-          'S\u00fcni intellekt t\u0259r\u0259find\u0259n yarad\u0131lm\u0131\u015fd\u0131r \u2014 yoxlama t\u0259l\u0259b olunur',
-          '</div>',
-          '</body></html>'
+          '<!DOCTYPE html><html><head><meta charset="utf-8">',
+          '<title>ARTI-2026 D\u0259rs Plan\u0131</title></head><body>',
+          formatted_body,
+          '<div style="text-align:center; color:#7f8c8d; margin-top:30px; padding-top:10px; border-top:1px solid #bdc3c7; font-size:10pt;">',
+          'ARTI-2026 | Az\u0259rbaycan Respublikas\u0131 T\u0259hsil \u0130nstitutu | ',
+          format(Sys.time(), "%d.%m.%Y %H:%M"),
+          '</div></body></html>'
         )
 
         tryCatch({
@@ -787,13 +966,20 @@ lesson_plan_server <- function(id, db_pool, user_data) {
         ))
       }
 
-      if (!is.null(plan$raw_text)) {
+      # raw_text varsa, format_lesson_plan_html ilə gözəl göstər
+      raw <- plan_raw_text()
+      if (!is.null(raw) && nchar(raw) > 0) {
+        formatted <- tryCatch(
+          format_lesson_plan_html(raw),
+          error = function(e) paste0("<div style='font-size:15px; line-height:1.8;'>", raw, "</div>")
+        )
         return(tags$div(
-          style = "background:#f8f9fa; padding:15px; border-radius:8px; white-space:pre-wrap;",
-          HTML(markdown_to_html(plan$raw_text))
+          style = "background:#f8f9fa; padding:15px; border-radius:8px;",
+          HTML(formatted)
         ))
       }
 
+      # Əgər raw yoxdursa, plan struct-dan göstər
       lesson_plan_to_html(plan)
     })
 
@@ -827,36 +1013,25 @@ lesson_plan_server <- function(id, db_pool, user_data) {
         plan <- generated_plan()
         if (is.null(raw) && is.null(plan)) return()
 
-        body_content <- if (!is.null(raw)) raw else lesson_plan_to_text(plan)
+        body_text <- raw %||% lesson_plan_to_text(plan)
+        if (is.list(body_text)) body_text <- paste(unlist(body_text), collapse = "\n")
+        if (length(body_text) > 1) body_text <- paste(body_text, collapse = "\n")
 
-        html_content <- paste0(
-          '<!DOCTYPE html><html><head>',
-          '<meta charset="utf-8">',
-          '<style>',
-          'body { font-family: Arial, sans-serif; font-size: 14pt; ',
-          'line-height: 1.8; margin: 40px; color: #2c3e50; }',
-          'h1 { color: #1B4F72; font-size: 22pt; border-bottom: 2px solid #2E86C1; padding-bottom: 8px; }',
-          'h2 { color: #2E86C1; font-size: 18pt; }',
-          'h3 { color: #27AE60; font-size: 16pt; }',
-          'table { border-collapse: collapse; width: 100%; margin: 10px 0; }',
-          'th, td { border: 1px solid #bdc3c7; padding: 10px; font-size: 13pt; }',
-          'th { background: #1B4F72; color: white; }',
-          'tr:nth-child(even) { background: #f2f3f4; }',
-          '.header { text-align: center; margin-bottom: 30px; }',
-          '.footer { text-align: center; color: #7f8c8d; margin-top: 40px; ',
-          'border-top: 1px solid #bdc3c7; padding-top: 10px; font-size: 11pt; }',
-          '</style></head><body>',
-          '<div class="header">',
-          '<h1>ARTI-2026 \u2014 D\u0259rs Plan\u0131</h1>',
-          '<p><strong>Tarix:</strong> ', format(Sys.time(), "%d.%m.%Y %H:%M"), '</p>',
-          '</div>',
-          body_content,
-          '<div class="footer">',
-          'ARTI-2026 | Az\u0259rbaycan Respublikas\u0131 T\u0259hsil \u0130nstitutu',
-          '</div>',
-          '</body></html>'
+        formatted <- tryCatch(
+          format_lesson_plan_html(body_text),
+          error = function(e) paste0("<div>", body_text, "</div>")
         )
-        writeLines(html_content, file, useBytes = TRUE)
+
+        full_html <- paste0(
+          '<!DOCTYPE html><html><head><meta charset="utf-8">',
+          '<title>ARTI-2026 D\u0259rs Plan\u0131</title></head><body>',
+          formatted,
+          '<div style="text-align:center; color:#7f8c8d; margin-top:30px; padding-top:10px; border-top:1px solid #bdc3c7; font-size:10pt;">',
+          'ARTI-2026 | Az\u0259rbaycan Respublikas\u0131 T\u0259hsil \u0130nstitutu | ',
+          format(Sys.time(), "%d.%m.%Y %H:%M"),
+          '</div></body></html>'
+        )
+        writeLines(full_html, file, useBytes = TRUE)
       }
     )
 

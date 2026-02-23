@@ -12,6 +12,7 @@ library(DBI)
 library(RPostgres)
 library(pool)
 library(dotenv)
+
 library(shinyjs)
 library(DT)
 library(plotly)
@@ -977,6 +978,9 @@ shinyApp(
     port = as.integer(Sys.getenv("APP_PORT", 3838))
   )
 )
+
+# ---------------------------------------------------------------------------------------------
+
 
 #lsof -ti:4040 | xargs kill -9
 #lsof -ti:3838 | xargs kill -9
